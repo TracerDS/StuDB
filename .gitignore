@@ -1,0 +1,8 @@
+/*
+/*/
+!/.gitignore
+
+!/hpp
+!/src
+
+!/data.sdbf

@@ -14,28 +14,29 @@ Student* AddStudent(std::string name, uint8_t age, uint16_t id) {
 	if (!g_students)
 		return nullptr;
 
-	// Je¿eli dotarliœmy do rozmiaru tablicy
-	// to zallokuj wiêcej miejsca
+	// JeÅ¼eli dotarliÅ›my do rozmiaru tablicy
+	// to zallokuj wiÄ™cej miejsca
 	if (g_studentsSize >= g_studentsAllocatedSize) {
 		g_studentsSize = g_studentsAllocatedSize;
 
-		// Allokujemy tymczasow¹ tablicê
+		// Allokujemy tymczasowï¿½ tablicï¿½
 		Student** temp = (Student**) calloc(g_studentsAllocatedSize, sizeof(Student));
-		// Je¿eli nie uda³o siê zallokowaæ tablicy to zwróæ nullptr
+		// Jeï¿½eli nie udaï¿½o siï¿½ zallokowaï¿½ tablicy to zwrï¿½ï¿½ nullptr
 		if (!temp)
 			return nullptr;
 
-		// Robimy kopiê elementów ze starej tablicy
+		// Robimy kopiï¿½ elementï¿½w ze starej tablicy
 		memcpy(temp, g_students, g_studentsAllocatedSize);
 
-		// Allokujemy now¹ tablicê
+		// Allokujemy nowï¿½ tablicï¿½
 		free(g_students);
-		g_students = (Student**) calloc(g_studentsAllocatedSize + 1, sizeof(Student));
-		// Je¿eli nie uda³o siê zallokowaæ tablicy to zwróæ nullptr
+		g_students = (Student**) calloc(g_studentsAllocatedSize + 8, sizeof(Student));
+		// Jeï¿½eli nie udaï¿½o siï¿½ zallokowaï¿½ tablicy to zwrï¿½ï¿½ nullptr
 		if (!g_students)
 			return nullptr;
 
-		memcpy(g_students, temp, g_studentsAllocatedSize++);
+		memcpy(g_students, temp, g_studentsAllocatedSize);
+		g_studentsAllocatedSize += 8;
 	}
 	Student* student = (Student*) calloc(1, sizeof(Student));
 	if (!student) return nullptr;
@@ -55,13 +56,12 @@ void RemoveStudent(const Student* const student) {
 	if (!g_students)
 		return;
 
-	for (std::uint32_t i = 0; i < g_studentsSize; i++) {
-		Student* currentStudent = g_students[i];
-		if (currentStudent != student)
+	for (std::uint32_t i = 0; i < g_studentsAllocatedSize; i++) {
+		if (g_students[i] != student)
 			continue;
-
-		free(&currentStudent);
-		currentStudent = nullptr;
+		
+		free(g_students[i]);
+		g_students[i] = nullptr;
 	}
 }
 

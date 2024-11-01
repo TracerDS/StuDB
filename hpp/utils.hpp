@@ -18,3 +18,8 @@ constexpr std::vector<std::string> splitString(std::string str, std::string deli
 
 	return result;
 }
+
+struct Array {
+	std::size_t size;
+	char* data;
+};

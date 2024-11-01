@@ -74,7 +74,7 @@ int MainFunc() {
 
 				auto student = GetStudent(id);
 				if (!student) {
-					printf("Nie ma studenta o ID równym \"%s\"!", idStr);
+					printf("Nie ma studenta o ID rï¿½wnym \"%s\"!", idStr);
 					break;
 				}
 				RemoveStudent(student);
@@ -83,7 +83,7 @@ int MainFunc() {
 			}
 			case '3':
 			{
-				printf("Podaj sciezke do pliku:");
+				printf("Podaj sciezke do pliku: ");
 				char path[MAX_PATH]{ 0 };
 				scanf_s("%s", &path, MAX_PATH);
 
@@ -97,7 +97,7 @@ int MainFunc() {
 					printf("Nie ma zadnych studentow\n");
 					break;
 				}
-				printf("Lista studentow: \n");
+				printf("Lista studentow [%d]: \n", GetAmountOfStudents());
 
 				auto* students = GetStudents();
 				for (std::uint32_t i = 0; i < size; i++) {

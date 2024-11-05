@@ -1,69 +1,155 @@
 #include <student.hpp>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <string>
-#include <algorithm>
 #include <utils.hpp>
+
+#include <stdlib.h>
+
+struct Student {
+	char* name;
+	char* surname;
+	char* address;
+	char* email;
+	uint8_t age;
+	uint16_t id;
+};
+
+Student* Student_Create(
+	const char* const name,
+	const char* const surname,
+	const char* const address,
+	const char* const email,
+	uint8_t age,
+	uint16_t id
+) {
+	Student* student = (Student*)calloc(1, sizeof(Student));
+	if (!student)
+		return NULL;
+
+	size_t nameLen = strlen(name);
+	size_t surnameLen = strlen(surname);
+	size_t addressLen = strlen(address);
+	size_t emailLen = strlen(email);
+
+	student->name = (char*)calloc(nearestMultipleOf(nameLen + 1, 8), sizeof(char));
+	student->surname = (char*)calloc(nearestMultipleOf(surnameLen + 1, 8), sizeof(char));
+	student->address = (char*)calloc(nearestMultipleOf(addressLen + 1, 8), sizeof(char));
+	student->email = (char*)calloc(nearestMultipleOf(emailLen + 1, 8), sizeof(char));
+	
+	student->age = age;
+	student->id = id;
+
+	return student;
+}
+
+const char* Student_GetName(const Student* const student) {
+	if (!student)
+		return NULL;
+	return student->name;
+}
+
+const char* Student_GetSurname(const Student* const student) {
+	if (!student)
+		return NULL;
+	return student->surname;
+}
+
+const char* Student_GetAddress(const Student* const student) {
+	if (!student)
+		return NULL;
+	return student->address;
+}
+
+const char* Student_GetEmail(const Student* const student) {
+	if (!student)
+		return NULL;
+	return student->email;
+}
+
+uint8_t Student_GetAge(const Student* const student) {
+	if (!student)
+		return NULL;
+	return student->age;
+}
+
+uint16_t Student_GetID(const Student* const student) {
+	if (!student)
+		return NULL;
+	return student->id;
+}
+
+
+bool Student_SetName(Student* student, const char* const name) {
+	if (!student || !name)
+		return false;
+
+	free(student->name);
+	size_t nameLen = strlen(name);
+	student->name = (char*)calloc(nearestMultipleOf(nameLen + 1, 8), sizeof(char));
+	return student->name != NULL;
+}
+
+bool Student_GetSurname(Student* student, const char* const surname) {
+	if (!student)
+		return false;
+
+	free(student->name);
+	size_t surnameLen = strlen(surname);
+	student->surname = (char*)calloc(nearestMultipleOf(surnameLen + 1, 8), sizeof(char));
+	return student->surname != NULL;
+}
+
+bool Student_GetAddress(Student* student, const char* const address) {
+	if (!student)
+		return false;
+
+	free(student->address);
+	size_t addressLen = strlen(address);
+	student->address = (char*)calloc(nearestMultipleOf(addressLen + 1, 8), sizeof(char));
+	return student->address != NULL;
+}
+
+bool Student_GetEmail(Student* student, const char* const email) {
+	if (!student)
+		return false;
+
+	free(student->email);
+	size_t emailLen = strlen(email);
+	student->email = (char*)calloc(nearestMultipleOf(emailLen + 1, 8), sizeof(char));
+	return student->email != NULL;
+}
+
+bool Student_GetAge(Student* student, uint8_t age) {
+	if (!student)
+		return false;
+
+	student->age = age;
+
+	return true;
+}
+
+bool Student_GetID(Student* student, uint16_t id) {
+	if (!student)
+		return false;
+
+	student->id = id;
+
+	return true;
+}
+
+
+void Student_Destroy(Student* student) {
+	if (!student)
+		return;
+
+	free(student->name);
+	free(student->surname);
+	free(student);
+	student = NULL;
+}
+
 
 Student** g_students{ nullptr };
 uint32_t g_studentsSize{ 0 };
 uint32_t g_studentsAllocatedSize{ 0 };
-
-Student* AddStudent(std::string name, uint8_t age, uint16_t id) {
-	if (!g_students)
-		return nullptr;
-
-	// Jeżeli dotarliśmy do rozmiaru tablicy
-	// to zallokuj więcej miejsca
-	if (g_studentsSize >= g_studentsAllocatedSize) {
-		g_studentsSize = g_studentsAllocatedSize;
-
-		// Allokujemy tymczasow� tablic�
-		Student** temp = (Student**) calloc(g_studentsAllocatedSize, sizeof(Student));
-		// Je�eli nie uda�o si� zallokowa� tablicy to zwr�� nullptr
-		if (!temp)
-			return nullptr;
-
-		// Robimy kopi� element�w ze starej tablicy
-		memcpy(temp, g_students, g_studentsAllocatedSize);
-
-		// Allokujemy now� tablic�
-		free(g_students);
-		g_students = (Student**) calloc(g_studentsAllocatedSize + 8, sizeof(Student));
-		// Je�eli nie uda�o si� zallokowa� tablicy to zwr�� nullptr
-		if (!g_students)
-			return nullptr;
-
-		memcpy(g_students, temp, g_studentsAllocatedSize);
-		g_studentsAllocatedSize += 8;
-	}
-	Student* student = (Student*) calloc(1, sizeof(Student));
-	if (!student) return nullptr;
-
-	student->name = std::move(name);
-	student->age = age;
-	student->id = id;
-
-	g_students[g_studentsSize++] = student;
-	return student;
-}
-
-void RemoveStudent(const Student* const student) {
-	if (!student)
-		return;
-
-	if (!g_students)
-		return;
-
-	for (std::uint32_t i = 0; i < g_studentsAllocatedSize; i++) {
-		if (g_students[i] != student)
-			continue;
-		
-		free(g_students[i]);
-		g_students[i] = nullptr;
-	}
-}
 
 void AddStudentsFromFile(const char* path) {
 	FILE* file;

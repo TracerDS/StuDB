@@ -19,7 +19,6 @@ constexpr std::vector<std::string> splitString(std::string str, std::string deli
 	return result;
 }
 
-struct Array {
-	std::size_t size;
-	char* data;
-};
+static size_t nearestMultipleOf(size_t num, size_t multiple) noexcept {
+	return ((num + multiple - 1) / multiple) * multiple;
+}

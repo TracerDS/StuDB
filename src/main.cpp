@@ -4,13 +4,16 @@
 
 #include <conio.h>
 #include <windows.h>
+#include <array.hpp>
 
 #define clrscr() printf("\x1b[2J\x1b[1;1H")
 
 int main();
 int MainFunc();
 
+
 int main() {
+	return 0;
 	CreateStudentsList();
 	auto status = MainFunc();
 	DeleteStudentsList();

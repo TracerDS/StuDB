@@ -1,7 +1,8 @@
-#include <student.hpp>
-#include <utils.hpp>
+#include <student.h>
+#include <utils.h>
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 struct Student {
 	char* name;
@@ -87,7 +88,7 @@ bool Student_SetName(Student* student, const char* const name) {
 	return student->name != NULL;
 }
 
-bool Student_GetSurname(Student* student, const char* const surname) {
+bool Student_SetSurname(Student* student, const char* const surname) {
 	if (!student)
 		return false;
 
@@ -97,7 +98,7 @@ bool Student_GetSurname(Student* student, const char* const surname) {
 	return student->surname != NULL;
 }
 
-bool Student_GetAddress(Student* student, const char* const address) {
+bool Student_SetAddress(Student* student, const char* const address) {
 	if (!student)
 		return false;
 
@@ -107,7 +108,7 @@ bool Student_GetAddress(Student* student, const char* const address) {
 	return student->address != NULL;
 }
 
-bool Student_GetEmail(Student* student, const char* const email) {
+bool Student_SetEmail(Student* student, const char* const email) {
 	if (!student)
 		return false;
 
@@ -117,7 +118,7 @@ bool Student_GetEmail(Student* student, const char* const email) {
 	return student->email != NULL;
 }
 
-bool Student_GetAge(Student* student, uint8_t age) {
+bool Student_SetAge(Student* student, uint8_t age) {
 	if (!student)
 		return false;
 
@@ -126,7 +127,7 @@ bool Student_GetAge(Student* student, uint8_t age) {
 	return true;
 }
 
-bool Student_GetID(Student* student, uint16_t id) {
+bool Student_SetID(Student* student, uint16_t id) {
 	if (!student)
 		return false;
 
@@ -144,100 +145,4 @@ void Student_Destroy(Student* student) {
 	free(student->surname);
 	free(student);
 	student = NULL;
-}
-
-
-Student** g_students{ nullptr };
-uint32_t g_studentsSize{ 0 };
-uint32_t g_studentsAllocatedSize{ 0 };
-
-void AddStudentsFromFile(const char* path) {
-	FILE* file;
-	fopen_s(&file, path, "r");
-	if (!file)
-		return;
-
-	if (fseek(file, 0, SEEK_END) != 0) {
-		fclose(file);
-		return;
-	}
-	auto size = ftell(file);
-	if (size == -1l) {
-		fclose(file);
-		return;
-	}
-	rewind(file);
-	char* buffer = (char*) calloc(size + 1, 1);
-	if (!buffer)
-		return;
-
-	fread(buffer, 1, size - 1, file);
-	fclose(file);
-	AddStudentsFromBuffer(buffer);
-	free(buffer);
-}
-
-
-void AddStudentsFromBuffer(const char* data) {
-	auto lines = splitString(data, "\n");
-	for (const auto& line : lines) {
-		auto data = splitString(line, ",");
-		if (data.size() != 3) continue;
-
-		auto age = (std::uint8_t)strtoul(data[1].c_str(), nullptr, 10);
-		if (age == 0 || age == ULONG_MAX)
-			continue;
-
-		auto id = (std::uint16_t)strtoul(data[2].c_str(), nullptr, 10);
-		if (id == 0 || id == ULONG_MAX)
-			continue;
-
-		AddStudent(data[0], age, id);
-	}
-}
-
-
-void CreateStudentsList() {
-	if (g_students)
-		return;
-	g_studentsAllocatedSize = 8;
-	g_studentsSize = 0;
-	g_students = (Student**) calloc(g_studentsAllocatedSize, sizeof(Student));
-}
-
-Student** GetStudents() { return g_students; }
-Student* GetStudent(std::uint16_t id) {
-	for (uint32_t i = 0; i < g_studentsAllocatedSize; i++) {
-		Student* student = g_students[i];
-		if (!student || student->id != id) continue;
-		return student;
-	}
-	return nullptr;
-}
-
-uint32_t GetStudentsSize() { return g_studentsSize; }
-uint32_t GetAmountOfStudents() {
-	uint32_t out{ 0 };
-	for (uint32_t i = 0; i < g_studentsAllocatedSize; i++) {
-		if (!g_students[i]) continue;
-		out++;
-	}
-	return out;
-}
-
-void DeleteStudentsList() {
-	if (!g_students)
-		return;
-
-	auto temp = g_students;
-	for (uint32_t i = 0; i < g_studentsAllocatedSize; i++) {
-		Student* student = g_students[i];
-		if (!student)
-			continue;
-
-		free(student);
-		student = nullptr;
-	}
-	free(g_students);
-	g_students = nullptr;
 }

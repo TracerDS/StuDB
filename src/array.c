@@ -1,5 +1,5 @@
-#include <array.hpp>
-#include <utils.hpp>
+#include <array.h>
+#include <utils.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -39,7 +39,7 @@ bool Array_Resize(Array* array, size_t size) {
 		return true;
 
 	if (array->reservedSize < size) {
-		auto temp = array->data;
+		char* temp = array->data;
 		array->reservedSize = size;
 		array->data = (char*)calloc(array->reservedSize, sizeof(char));
 		if (!array->data)
@@ -52,7 +52,7 @@ bool Array_Resize(Array* array, size_t size) {
 		return true;
 	}
 
-	auto temp = array->data;
+	char* temp = array->data;
 	array->reservedSize = size + 1;
 	array->data = (char*)calloc(array->reservedSize, sizeof(char));
 	if (!array->data)

@@ -2,7 +2,7 @@
 /*/
 !/.gitignore
 
-!/hpp
+!/include
 !/src
 
 !/data.sdbf

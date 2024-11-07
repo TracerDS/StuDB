@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 struct Student {
 	char* name;
@@ -37,6 +38,65 @@ Student* Student_Create(
 	
 	student->age = age;
 	student->id = id;
+
+	return student;
+}
+
+Student* Student_CreateFromData(const char* const data) {
+	if (!data)
+		return NULL;
+
+	size_t size = strlen(data);
+
+	char* buffer = (char*)calloc(+1, sizeof(char));
+	if (!buffer)
+		return NULL;
+
+	strncpy(buffer, data, size);
+
+	Student* student = (Student*)calloc(1, sizeof(Student));
+	if (!student) {
+		free(buffer);
+		return NULL;
+	}
+	size_t index = 0;
+
+	index = findSubstring(buffer, ';', index);
+	student->name = getFirstSubstringFromIndex(buffer, index);
+
+	index = findSubstring(buffer, ';', index);
+	student->surname = getFirstSubstringFromIndex(buffer, ';', index);
+	
+	index = findSubstring(buffer, ';', index);
+	student->address = getFirstSubstringFromIndex(buffer, ';', index);
+
+	index = findSubstring(buffer, ';', index);
+	student->email = getFirstSubstringFromIndex(buffer, ';', index);
+
+	index = findSubstring(buffer, ';', index);
+	{
+		char* temp = getFirstSubstringFromIndex(buffer, ';', index);
+		if (temp) {
+			student->age = strtoul(temp, NULL, 10);
+			free(temp);
+		}
+	}
+
+	index = findSubstring(buffer, ';', index);
+	{
+		char* temp = getFirstSubstringFromIndex(buffer, ';', index);
+		if (temp) {
+			student->id = strtoul(temp, NULL, 10);
+			free(temp);
+		}
+	}
+
+	free(buffer);
+
+	if (!student->name || !student->surname || !student->address || !student->email) {
+		free(student);
+		return NULL;
+	}
 
 	return student;
 }

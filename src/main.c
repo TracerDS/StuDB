@@ -1,22 +1,30 @@
 #include <student.h>
+#include <studentlist.h>
+#include <array.h>
 
 #include <conio.h>
 #include <windows.h>
-#include <array.h>
 
 #define clrscr() printf("\x1b[2J\x1b[1;1H")
 
 int main();
-//int MainFunc();
+int MainFunc();
 
+StudentList* g_studentList;
 
 int main() {
-	return 0;
-	//CreateStudentsList();
-	//auto status = MainFunc();
-	//DeleteStudentsList();
-	//return status;
+	g_studentList = StudentList_Create();
+
+	int status = MainFun();
+
+	StudentList_Destroy(g_studentList);
+
+	return status;
 }
+
+int MainFunc() {
+}
+
 /*
 
 int MainFunc() {

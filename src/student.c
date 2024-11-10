@@ -138,7 +138,7 @@ uint16_t Student_GetID(const Student* const student) {
 }
 
 
-bool Student_SetName(Student* student, const char* const name) {
+bool Student_SetName(Student* const student, const char* const name) {
 	if (!student || !name)
 		return false;
 
@@ -148,7 +148,7 @@ bool Student_SetName(Student* student, const char* const name) {
 	return student->name != NULL;
 }
 
-bool Student_SetSurname(Student* student, const char* const surname) {
+bool Student_SetSurname(Student* const student, const char* const surname) {
 	if (!student)
 		return false;
 
@@ -158,7 +158,7 @@ bool Student_SetSurname(Student* student, const char* const surname) {
 	return student->surname != NULL;
 }
 
-bool Student_SetAddress(Student* student, const char* const address) {
+bool Student_SetAddress(Student* const student, const char* const address) {
 	if (!student)
 		return false;
 
@@ -168,7 +168,7 @@ bool Student_SetAddress(Student* student, const char* const address) {
 	return student->address != NULL;
 }
 
-bool Student_SetEmail(Student* student, const char* const email) {
+bool Student_SetEmail(Student* const student, const char* const email) {
 	if (!student)
 		return false;
 
@@ -178,7 +178,7 @@ bool Student_SetEmail(Student* student, const char* const email) {
 	return student->email != NULL;
 }
 
-bool Student_SetAge(Student* student, uint8_t age) {
+bool Student_SetAge(Student* const student, uint8_t age) {
 	if (!student)
 		return false;
 
@@ -187,7 +187,7 @@ bool Student_SetAge(Student* student, uint8_t age) {
 	return true;
 }
 
-bool Student_SetID(Student* student, uint16_t id) {
+bool Student_SetID(Student* const student, uint16_t id) {
 	if (!student)
 		return false;
 

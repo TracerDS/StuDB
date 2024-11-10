@@ -28,20 +28,17 @@ char* getFirstSubstring(const char* const string, char separator, size_t index) 
 	return getFirstSubstringFromIndex(string, pos);
 }
 
-size_t findSubstring(const char* const string, const char* const substring, size_t index) {
+size_t findSubstring(const char* const string, const char* const substring) {
 	size_t stringLength = strlen(string);
 	size_t substringLength = strlen(substring);
 
-	if (index == -1)
-		index = 0;
-
-	for (size_t i = 0; i < stringLength - index; i++) {
-		if (string[index + i] != substring[0])
+	for (size_t i = 0; i < stringLength; i++) {
+		if (string[i] != substring[0])
 			continue;
 
 		size_t j = 0;
 		for (; j < substringLength; j++) {
-			if (string[index + i + j] != substring[j]) {
+			if (string[i + j] != substring[j]) {
 				break;
 			}
 		}
@@ -52,6 +49,17 @@ size_t findSubstring(const char* const string, const char* const substring, size
 	}
 
 	return -1;
+}
+
+size_t findSubstringEnd(const char* const string, const char* const substring) {
+	size_t stringLength = strlen(string);
+	size_t substringLength = strlen(substring);
+
+	size_t pos = findSubstring(string, substring);
+	if (pos == -1)
+		return -1;
+
+	return pos + substringLength;
 }
 
 size_t nearestMultipleOf(size_t num, size_t multiple) {

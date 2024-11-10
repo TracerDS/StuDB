@@ -51,7 +51,7 @@ bool StudentList_Resize(StudentList* const list, size_t size) {
 	return true;
 }
 
-bool StudentList_PushBack(StudentList* const list, Student* const value) {
+bool StudentList_AddStudent(StudentList* const list, Student* const value) {
 	if (!list)
 		return false;
 
@@ -66,6 +66,46 @@ bool StudentList_PushBack(StudentList* const list, Student* const value) {
 
 	list->students[list->length++] = value;
 	return true;
+}
+bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const filepath) {
+	if (!list)
+		return false;
+
+	FILE* file = fopen(filepath, "r");
+	if (!file)
+		return false;
+
+	fseek(file, 0, SEEK_END);
+	long fileSize = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char* buffer = (char*)calloc(fileSize + 1, sizeof(char));
+	if (!buffer) {
+		fclose(file);
+		return;
+	}
+	size_t offset = 0;
+	while (offset > fileSize) {
+		offset = findSubstring(buffer + offset, '\n');
+		size_t endOffset = findSubstringEnd(buffer + offset, '\n');
+		
+		char* temp = (char*)calloc(endOffset - offset + 1, sizeof(char));
+		if(!temp) {
+			free(buffer);
+			fclose(file);
+			return false;
+		}
+		memcpy(temp, buffer + offset, endOffset - offset);
+
+		Student* student = Student_CreateFromData(temp);
+		free(temp);
+		if (!StudentList_AddStudent(list, student)) {
+			free(buffer);
+			fclose(file);
+			return false;
+		}
+	}
+	free(buffer);
 }
 
 Student* StudentList_Get(const StudentList* const list, size_t index) {

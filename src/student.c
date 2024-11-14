@@ -52,7 +52,7 @@ Student* Student_CreateFromData(const char* const data) {
 	if (!buffer)
 		return NULL;
 
-	strncpy(buffer, data, size);
+	strncpy_s(buffer, size, data, size);
 
 	Student* student = (Student*)calloc(1, sizeof(Student));
 	if (!student) {
@@ -61,32 +61,32 @@ Student* Student_CreateFromData(const char* const data) {
 	}
 	size_t index = 0;
 
-	index = findSubstring(buffer, ';', index);
+	index = findSubstring(buffer + index, ";");
 	student->name = getFirstSubstringFromIndex(buffer, index);
 
-	index = findSubstring(buffer, ';', index);
-	student->surname = getFirstSubstringFromIndex(buffer, ';', index);
+	index = findSubstring(buffer + index, ";");
+	student->surname = getFirstSubstringFromIndex(buffer, index);
 	
-	index = findSubstring(buffer, ';', index);
-	student->address = getFirstSubstringFromIndex(buffer, ';', index);
+	index = findSubstring(buffer + index, ";");
+	student->address = getFirstSubstringFromIndex(buffer, index);
 
-	index = findSubstring(buffer, ';', index);
-	student->email = getFirstSubstringFromIndex(buffer, ';', index);
+	index = findSubstring(buffer + index, ";");
+	student->email = getFirstSubstringFromIndex(buffer, index);
 
-	index = findSubstring(buffer, ';', index);
+	index = findSubstring(buffer + index, ";");
 	{
-		char* temp = getFirstSubstringFromIndex(buffer, ';', index);
+		char* temp = getFirstSubstringFromIndex(buffer, index);
 		if (temp) {
-			student->age = strtoul(temp, NULL, 10);
+			student->age = (uint8_t)strtoul(temp, NULL, 10);
 			free(temp);
 		}
 	}
 
-	index = findSubstring(buffer, ';', index);
+	index = findSubstring(buffer + index, ";");
 	{
-		char* temp = getFirstSubstringFromIndex(buffer, ';', index);
+		char* temp = getFirstSubstringFromIndex(buffer, index);
 		if (temp) {
-			student->id = strtoul(temp, NULL, 10);
+			student->id = (uint16_t)strtoul(temp, NULL, 10);
 			free(temp);
 		}
 	}
@@ -127,13 +127,13 @@ const char* Student_GetEmail(const Student* const student) {
 
 uint8_t Student_GetAge(const Student* const student) {
 	if (!student)
-		return NULL;
+		return 0;
 	return student->age;
 }
 
 uint16_t Student_GetID(const Student* const student) {
 	if (!student)
-		return NULL;
+		return 0;
 	return student->id;
 }
 
@@ -183,7 +183,6 @@ bool Student_SetAge(Student* const student, uint8_t age) {
 		return false;
 
 	student->age = age;
-
 	return true;
 }
 
@@ -192,7 +191,6 @@ bool Student_SetID(Student* const student, uint16_t id) {
 		return false;
 
 	student->id = id;
-
 	return true;
 }
 
@@ -203,6 +201,8 @@ void Student_Destroy(Student* student) {
 
 	free(student->name);
 	free(student->surname);
+	free(student->address);
+	free(student->email);
 	free(student);
 	student = NULL;
 }

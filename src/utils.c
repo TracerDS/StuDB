@@ -21,7 +21,7 @@ char* getFirstSubstring(const char* const string, char separator, size_t index) 
 	if (index == -1)
 		index = strlen(string);
 
-	size_t pos = findSubstring(string + index, separatorStr, index);
+	size_t pos = findSubstring(string + index, separatorStr);
 	if (pos == -1)
 		return NULL;
 

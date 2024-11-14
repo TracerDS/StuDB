@@ -82,12 +82,12 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 	char* buffer = (char*)calloc(fileSize + 1, sizeof(char));
 	if (!buffer) {
 		fclose(file);
-		return;
+		return false;
 	}
 	size_t offset = 0;
 	while (offset > fileSize) {
-		offset = findSubstring(buffer + offset, '\n');
-		size_t endOffset = findSubstringEnd(buffer + offset, '\n');
+		offset = findSubstring(buffer + offset, "\n");
+		size_t endOffset = findSubstringEnd(buffer + offset, "\n");
 		
 		char* temp = (char*)calloc(endOffset - offset + 1, sizeof(char));
 		if(!temp) {
@@ -106,6 +106,7 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 		}
 	}
 	free(buffer);
+	return true;
 }
 
 Student* StudentList_Get(const StudentList* const list, size_t index) {
@@ -131,6 +132,13 @@ size_t StudentList_GetReservedSize(const StudentList* const list) {
 void StudentList_Destroy(StudentList* list) {
 	if (!list)
 		return;
+
+	for (size_t i = 0; i < list->length; i++) {
+		Student* student = list->students[i];
+		if (!student)
+			continue;
+		Student_Destroy(student);
+	}
 
 	free(list->students);
 	free(list);

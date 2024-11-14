@@ -15,7 +15,7 @@ StudentList* g_studentList;
 int main() {
 	g_studentList = StudentList_Create();
 
-	int status = MainFun();
+	int status = MainFunc();
 
 	StudentList_Destroy(g_studentList);
 
@@ -23,6 +23,16 @@ int main() {
 }
 
 int MainFunc() {
+	StudentList_AddStudentsFromFile(g_studentList, "data.sdbf");
+
+	for (int i = 0; i < StudentList_GetSize(g_studentList); i++) {
+		Student* student = StudentList_Get(g_studentList, i);
+		printf("Student: %s, %d, %d\n",
+			Student_GetName(student),
+			Student_GetAge(student),
+			Student_GetID(student)
+		);
+	}
 }
 
 /*

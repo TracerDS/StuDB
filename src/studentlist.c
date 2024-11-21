@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <array.h>
 
 struct StudentList {
 	Student** students;
@@ -21,6 +22,25 @@ StudentList* StudentList_Create() {
 	studentList->students = (Student**)calloc(studentList->reservedSize, sizeof(Student*));
 
 	return studentList;
+}
+
+bool StudentList_GenerateRandom(StudentList* const list, size_t size) {
+	if (!list)
+		return false;
+
+	if (list->length + size >= list->reservedSize) {
+		if (!StudentList_Resize(list, list->length + size))
+			return false;
+	}
+
+	for (size_t i = 0; i < size; i++) {
+		Student* student = Student_CreateRandom();
+		if (!student)
+			return false;
+
+		StudentList_AddStudent(list, student);
+	}
+	return true;
 }
 
 bool StudentList_Reserve(StudentList* const list, size_t size) {
@@ -71,39 +91,43 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 	if (!list)
 		return false;
 
-	FILE* file = fopen(filepath, "r");
-	if (!file)
+	size_t fileSize = 0;
+	char* buffer = readFile(filepath, &fileSize);
+	if (!buffer)
 		return false;
 
-	fseek(file, 0, SEEK_END);
-	long fileSize = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	char* buffer = (char*)calloc(fileSize + 1, sizeof(char));
-	if (!buffer) {
-		fclose(file);
-		return false;
-	}
 	size_t offset = 0;
-	while (offset > fileSize) {
-		offset = findSubstring(buffer + offset, "\n");
-		size_t endOffset = findSubstringEnd(buffer + offset, "\n");
-		
-		char* temp = (char*)calloc(endOffset - offset + 1, sizeof(char));
-		if(!temp) {
-			free(buffer);
-			fclose(file);
-			return false;
-		}
-		memcpy(temp, buffer + offset, endOffset - offset);
+	while (offset <= fileSize) {
+		size_t endOffset = findSubstring(buffer + offset, "\n");
+		if (endOffset == -1)
+			break;
 
-		Student* student = Student_CreateFromData(temp);
-		free(temp);
-		if (!StudentList_AddStudent(list, student)) {
-			free(buffer);
-			fclose(file);
-			return false;
+		Array* arr = Array_Create(endOffset);
+		if (!arr) {
+			LOG_ERR("Failed to allocate array data");
+			exit(EXIT_FAILURE);
+			return false; // This is unreachable
 		}
+
+		if (!Array_EmplaceBackSize(arr, buffer + offset, endOffset)) {
+			LOG_ERR("Failed to emplace data into array");
+			Array_Destroy(arr);
+			exit(EXIT_FAILURE);
+			return false; // This is unreachable
+		}
+
+		Student* student = Student_CreateFromData(Array_GetData(arr));
+		if (!student) {
+			LOG_ERR("An error occured while creating student from data");
+			Array_Destroy(arr);
+			exit(EXIT_FAILURE);
+			return false; // This is unrechable
+		}
+		Array_Destroy(arr);
+
+		StudentList_AddStudent(list, student);
+		
+		offset += endOffset + 1;
 	}
 	free(buffer);
 	return true;

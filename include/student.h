@@ -3,10 +3,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <array.h>
 
 typedef struct Student Student;
 
 Student* Student_Create(
+	const Array* const name,
+	const Array* const surname,
+	const Array* const address,
+	const Array* const email,
+	uint8_t age,
+	uint16_t id
+);
+Student* Student_CreateFromString(
 	const char* const name,
 	const char* const surname,
 	const char* const address,
@@ -15,19 +24,20 @@ Student* Student_Create(
 	uint16_t id
 );
 
+Student* Student_CreateRandom();
 Student* Student_CreateFromData(const char* const data);
 
-const char* Student_GetName(const Student* const student);
-const char* Student_GetSurname(const Student* const student);
-const char* Student_GetAddress(const Student* const student);
-const char* Student_GetEmail(const Student* const student);
+const Array* const Student_GetName(const Student* const student);
+const Array* const Student_GetSurname(const Student* const student);
+const Array* const Student_GetAddress(const Student* const student);
+const Array* const Student_GetEmail(const Student* const student);
 uint8_t Student_GetAge(const Student* const student);
 uint16_t Student_GetID(const Student* const student);
 
-bool Student_SetName(Student* const student, const char* const name);
-bool Student_SetSurname(Student* const student, const char* const surname);
-bool Student_SetAddress(Student* const student, const char* const address);
-bool Student_SetEmail(Student* const student, const char* const email);
+bool Student_SetName(Student* const student, const Array* const name);
+bool Student_SetSurname(Student* const student, const Array* const surname);
+bool Student_SetAddress(Student* const student, const Array* const address);
+bool Student_SetEmail(Student* const student, const Array* const email);
 bool Student_SetAge(Student* const student, uint8_t age);
 bool Student_SetID(Student* const student, uint16_t id);
 

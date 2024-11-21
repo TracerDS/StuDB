@@ -1,24 +1,27 @@
 #include <student.h>
 #include <utils.h>
+#include <names.h>
 
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 
+#define STUDENT_DATA_SEPARATOR ","
+
 struct Student {
-	char* name;
-	char* surname;
-	char* address;
-	char* email;
+	Array* name;
+	Array* surname;
+	Array* address;
+	Array* email;
 	uint8_t age;
 	uint16_t id;
 };
 
 Student* Student_Create(
-	const char* const name,
-	const char* const surname,
-	const char* const address,
-	const char* const email,
+	const Array* const name,
+	const Array* const surname,
+	const Array* const address,
+	const Array* const email,
 	uint8_t age,
 	uint16_t id
 ) {
@@ -26,18 +29,51 @@ Student* Student_Create(
 	if (!student)
 		return NULL;
 
-	size_t nameLen = strlen(name);
-	size_t surnameLen = strlen(surname);
-	size_t addressLen = strlen(address);
-	size_t emailLen = strlen(email);
+	student->name = Array_Copy(name);
+	student->surname = Array_Copy(surname);
+	student->address = Array_Copy(address);
+	student->email = Array_Copy(email);
 
-	student->name = (char*)calloc(nearestMultipleOf(nameLen + 1, 8), sizeof(char));
-	student->surname = (char*)calloc(nearestMultipleOf(surnameLen + 1, 8), sizeof(char));
-	student->address = (char*)calloc(nearestMultipleOf(addressLen + 1, 8), sizeof(char));
-	student->email = (char*)calloc(nearestMultipleOf(emailLen + 1, 8), sizeof(char));
-	
+	if (!student->name || !student->surname || !student->address || !student->email) {
+		return NULL;
+	}
+
 	student->age = age;
 	student->id = id;
+
+	return student;
+}
+
+Student* Student_CreateFromString(
+	const char* const name,
+	const char* const surname,
+	const char* const address,
+	const char* const email,
+	uint8_t age,
+	uint16_t id
+) {
+	return Student_Create(
+		Array_CreateFromString(name),
+		Array_CreateFromString(surname),
+		Array_CreateFromString(address),
+		Array_CreateFromString(email),
+		age,
+		id
+	);
+}
+
+Student* Student_CreateRandom() {
+	Student* student = (Student*)calloc(1, sizeof(Student));
+	if (!student)
+		return NULL;
+
+	student->name = Array_Copy(GetRandomName());
+	student->surname = Array_Copy(GetRandomSurname());
+	student->address = Array_Create(0);
+	student->email = Array_Create(0);
+
+	student->age = (uint8_t)randomNumberBetween(12, 90);
+	student->id = (uint8_t)randomNumberBetween(1000, 9999);
 
 	return student;
 }
@@ -48,11 +84,11 @@ Student* Student_CreateFromData(const char* const data) {
 
 	size_t size = strlen(data);
 
-	char* buffer = (char*)calloc(+1, sizeof(char));
+	char* buffer = (char*)calloc(size + 1, sizeof(char));
 	if (!buffer)
 		return NULL;
 
-	strncpy_s(buffer, size, data, size);
+	memcpy(buffer, data, size);
 
 	Student* student = (Student*)calloc(1, sizeof(Student));
 	if (!student) {
@@ -61,19 +97,19 @@ Student* Student_CreateFromData(const char* const data) {
 	}
 	size_t index = 0;
 
-	index = findSubstring(buffer + index, ";");
-	student->name = getFirstSubstringFromIndex(buffer, index);
+	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
+	student->name = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 
-	index = findSubstring(buffer + index, ";");
-	student->surname = getFirstSubstringFromIndex(buffer, index);
-	
-	index = findSubstring(buffer + index, ";");
-	student->address = getFirstSubstringFromIndex(buffer, index);
+	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
+	student->surname = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 
-	index = findSubstring(buffer + index, ";");
-	student->email = getFirstSubstringFromIndex(buffer, index);
+	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
+	student->address = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 
-	index = findSubstring(buffer + index, ";");
+	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
+	student->email = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
+
+	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
 	{
 		char* temp = getFirstSubstringFromIndex(buffer, index);
 		if (temp) {
@@ -82,7 +118,7 @@ Student* Student_CreateFromData(const char* const data) {
 		}
 	}
 
-	index = findSubstring(buffer + index, ";");
+	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
 	{
 		char* temp = getFirstSubstringFromIndex(buffer, index);
 		if (temp) {
@@ -101,25 +137,25 @@ Student* Student_CreateFromData(const char* const data) {
 	return student;
 }
 
-const char* Student_GetName(const Student* const student) {
+const Array* const Student_GetName(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->name;
 }
 
-const char* Student_GetSurname(const Student* const student) {
+const Array* const Student_GetSurname(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->surname;
 }
 
-const char* Student_GetAddress(const Student* const student) {
+const Array* const Student_GetAddress(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->address;
 }
 
-const char* Student_GetEmail(const Student* const student) {
+const Array* const Student_GetEmail(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->email;
@@ -138,43 +174,39 @@ uint16_t Student_GetID(const Student* const student) {
 }
 
 
-bool Student_SetName(Student* const student, const char* const name) {
+bool Student_SetName(Student* const student, const Array* const name) {
 	if (!student || !name)
 		return false;
 
-	free(student->name);
-	size_t nameLen = strlen(name);
-	student->name = (char*)calloc(nearestMultipleOf(nameLen + 1, 8), sizeof(char));
+	Array_Destroy(student->name);
+	student->name = Array_Copy(name);
 	return student->name != NULL;
 }
 
-bool Student_SetSurname(Student* const student, const char* const surname) {
+bool Student_SetSurname(Student* const student, const Array* const surname) {
 	if (!student)
 		return false;
 
-	free(student->name);
-	size_t surnameLen = strlen(surname);
-	student->surname = (char*)calloc(nearestMultipleOf(surnameLen + 1, 8), sizeof(char));
+	Array_Destroy(student->name);
+	student->surname = Array_Copy(surname);
 	return student->surname != NULL;
 }
 
-bool Student_SetAddress(Student* const student, const char* const address) {
+bool Student_SetAddress(Student* const student, const Array* const address) {
 	if (!student)
 		return false;
 
-	free(student->address);
-	size_t addressLen = strlen(address);
-	student->address = (char*)calloc(nearestMultipleOf(addressLen + 1, 8), sizeof(char));
+	Array_Destroy(student->address);
+	student->address = Array_Copy(address);
 	return student->address != NULL;
 }
 
-bool Student_SetEmail(Student* const student, const char* const email) {
+bool Student_SetEmail(Student* const student, const Array* const email) {
 	if (!student)
 		return false;
 
-	free(student->email);
-	size_t emailLen = strlen(email);
-	student->email = (char*)calloc(nearestMultipleOf(emailLen + 1, 8), sizeof(char));
+	Array_Destroy(student->email);
+	student->email = Array_Copy(email);
 	return student->email != NULL;
 }
 
@@ -199,10 +231,10 @@ void Student_Destroy(Student* student) {
 	if (!student)
 		return;
 
-	free(student->name);
-	free(student->surname);
-	free(student->address);
-	free(student->email);
+	Array_Destroy(student->name);
+	Array_Destroy(student->surname);
+	Array_Destroy(student->address);
+	Array_Destroy(student->email);
 	free(student);
 	student = NULL;
 }

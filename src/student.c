@@ -48,33 +48,41 @@ Student* Student_CreateFromData(const char* const data) {
 
 	size_t size = strlen(data);
 
-	char* buffer = (char*)calloc(+1, sizeof(char));
+	char* buffer = (char*)calloc(size + 1, sizeof(char));
 	if (!buffer)
 		return NULL;
 
-	strncpy_s(buffer, size, data, size);
+	memcpy(buffer, data, size * sizeof(char));
 
 	Student* student = (Student*)calloc(1, sizeof(Student));
 	if (!student) {
 		free(buffer);
 		return NULL;
 	}
-	size_t index = 0;
+	student->age = 0;
+	student->id = 0;
 
+	size_t index = 0;
 	index = findSubstring(buffer + index, ";");
 	student->name = getFirstSubstringFromIndex(buffer, index);
 
-	index = findSubstring(buffer + index, ";");
-	student->surname = getFirstSubstringFromIndex(buffer, index);
-	
-	index = findSubstring(buffer + index, ";");
-	student->address = getFirstSubstringFromIndex(buffer, index);
+	if (index != -1) {
+		index = findSubstring(buffer + index, ";");
+		student->surname = getFirstSubstringFromIndex(buffer, index);
+	}
 
-	index = findSubstring(buffer + index, ";");
-	student->email = getFirstSubstringFromIndex(buffer, index);
+	if (index != -1) {
+		index = findSubstring(buffer + index, ";");
+		student->address = getFirstSubstringFromIndex(buffer, index);
+	}
 
-	index = findSubstring(buffer + index, ";");
-	{
+	if (index != -1) {
+		index = findSubstring(buffer + index, ";");
+		student->email = getFirstSubstringFromIndex(buffer, index);
+	}
+
+	if (index != -1) {
+		index = findSubstring(buffer + index, ";");
 		char* temp = getFirstSubstringFromIndex(buffer, index);
 		if (temp) {
 			student->age = (uint8_t)strtoul(temp, NULL, 10);
@@ -82,8 +90,8 @@ Student* Student_CreateFromData(const char* const data) {
 		}
 	}
 
-	index = findSubstring(buffer + index, ";");
-	{
+	if (index != -1) {
+		index = findSubstring(buffer + index, ";");
 		char* temp = getFirstSubstringFromIndex(buffer, index);
 		if (temp) {
 			student->id = (uint16_t)strtoul(temp, NULL, 10);

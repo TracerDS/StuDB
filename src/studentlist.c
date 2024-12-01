@@ -52,7 +52,7 @@ bool StudentList_Resize(StudentList* const list, size_t size) {
 }
 
 bool StudentList_AddStudent(StudentList* const list, Student* const value) {
-	if (!list)
+	if (!list || !value)
 		return false;
 
 	if (list->length >= list->reservedSize) {
@@ -77,6 +77,10 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 
 	fseek(file, 0, SEEK_END);
 	long fileSize = ftell(file);
+	if (fileSize == -1) {
+		fclose(file);
+		return false;
+	}
 	fseek(file, 0, SEEK_SET);
 
 	char* buffer = (char*)calloc(fileSize + 1, sizeof(char));
@@ -84,26 +88,30 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 		fclose(file);
 		return false;
 	}
+	fread(buffer, sizeof(char), fileSize, file);
+	fclose(file);
+
 	size_t offset = 0;
-	while (offset > fileSize) {
-		offset = findSubstring(buffer + offset, "\n");
-		size_t endOffset = findSubstringEnd(buffer + offset, "\n");
-		
-		char* temp = (char*)calloc(endOffset - offset + 1, sizeof(char));
+	while (offset <= fileSize) {
+		size_t sizePos = findSubstring(buffer + offset, "\n");
+		if (sizePos == -1 || sizePos >= fileSize) {
+			sizePos = fileSize - offset;
+		}
+
+		char* temp = (char*)calloc(sizePos + 1, sizeof(char));
 		if(!temp) {
 			free(buffer);
-			fclose(file);
 			return false;
 		}
-		memcpy(temp, buffer + offset, endOffset - offset);
+		memcpy(temp, buffer + offset, sizePos++);
 
 		Student* student = Student_CreateFromData(temp);
 		free(temp);
 		if (!StudentList_AddStudent(list, student)) {
 			free(buffer);
-			fclose(file);
 			return false;
 		}
+		offset += sizePos;
 	}
 	free(buffer);
 	return true;

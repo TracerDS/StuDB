@@ -23,9 +23,15 @@ int main() {
 }
 
 int MainFunc() {
-	StudentList_AddStudentsFromFile(g_studentList, "data.sdbf");
+	if (!StudentList_AddStudentsFromFile(g_studentList, "data.sdbf")) {
+		printf("Failed to allocate!");
+		return 1;
+	}
 
-	for (int i = 0; i < StudentList_GetSize(g_studentList); i++) {
+	size_t size = StudentList_GetSize(g_studentList);
+	printf("Size: %llu\n", size);
+
+	for (int i = 0; i < size; i++) {
 		Student* student = StudentList_Get(g_studentList, i);
 		printf("Student: %s, %d, %d\n",
 			Student_GetName(student),
@@ -33,10 +39,11 @@ int MainFunc() {
 			Student_GetID(student)
 		);
 	}
+
+	return 0;
 }
 
 /*
-
 int MainFunc() {
 	while (true) {
 		clrscr();

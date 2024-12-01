@@ -27,10 +27,16 @@ Student* Student_CreateFromString(
 Student* Student_CreateRandom();
 Student* Student_CreateFromData(const char* const data);
 
-const Array* const Student_GetName(const Student* const student);
-const Array* const Student_GetSurname(const Student* const student);
-const Array* const Student_GetAddress(const Student* const student);
-const Array* const Student_GetEmail(const Student* const student);
+const char* const Student_GetName(const Student* const student);
+const char* const Student_GetSurname(const Student* const student);
+const char* const Student_GetAddress(const Student* const student);
+const char* const Student_GetEmail(const Student* const student);
+
+const Array* const Student_GetNameArray(const Student* const student);
+const Array* const Student_GetSurnameArray(const Student* const student);
+const Array* const Student_GetAddressArray(const Student* const student);
+const Array* const Student_GetEmailArray(const Student* const student);
+
 uint8_t Student_GetAge(const Student* const student);
 uint16_t Student_GetID(const Student* const student);
 

@@ -1,5 +1,6 @@
 #include <utils.h>
 
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -74,7 +75,11 @@ char* readFile(const char* const path, size_t* size) {
 		return NULL;
 
 	fseek(file, 0, SEEK_END);
-	size_t fileSize = ftell(file);
+	long fileSize = ftell(file);
+	if (fileSize == -1) {
+		fclose(file);
+		return false;
+	}
 	fseek(file, 0, SEEK_SET);
 
 	char* buffer = (char*)calloc(fileSize + 1, sizeof(char));
@@ -90,6 +95,45 @@ char* readFile(const char* const path, size_t* size) {
 	return buffer;
 }
 
+void appendFile(const char* const path, const char* const data) {
+	FILE* file = fopen(path, "a");
+	if (!file)
+		return;
+
+	fwrite(data, sizeof(char), strlen(data), file);
+	fclose(file);
+}
+
 int randomNumberBetween(int from, int to) {
 	return rand() % (to - from + 1) + from;
+}
+
+const char* toLower(char* const string) {
+	return transform(string, tolower);
+}
+const char* toUpper(char* const string) {
+	return transform(string, toupper);
+}
+const char* capitalize(char* const string) {
+	size_t length = strlen(string);
+	if (length == 0)
+		return string;
+
+	if (length > 1) {
+		string[0] = toupper(string[0]);
+	}
+
+	for (size_t i = 1; i < length; i++) {
+		string[i] = tolower(string[i]);
+	}
+	return string;
+}
+const char* transform(char* const string, TransformFunc function) {
+	if (!string)
+		return NULL;
+	size_t length = strlen(string);
+	for (size_t i = 0; i < length; i++) {
+		string[i] = function(string[i]);
+	}
+	return string;
 }

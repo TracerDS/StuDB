@@ -67,10 +67,22 @@ Student* Student_CreateRandom() {
 	if (!student)
 		return NULL;
 
-	student->name = Array_Copy(GetRandomName());
-	student->surname = Array_Copy(GetRandomSurname());
-	student->address = Array_Create(0);
-	student->email = Array_Create(0);
+	const Array* studentName = GetRandomName();
+	size_t studentNameSize = Array_GetSize(studentName);
+	const Array* studentSurname = GetRandomSurname();
+	size_t studentSurnameSize = Array_GetSize(studentSurname);
+
+	Array* studentEmail = Array_Create(studentNameSize + studentSurnameSize + 12);
+	Array_EmplaceBackSize(studentEmail, Array_GetData(studentName), studentNameSize);
+	Array_PushBack(studentEmail, '.');
+	Array_EmplaceBackSize(studentEmail, Array_GetData(studentSurname), studentSurnameSize);
+	Array_EmplaceBack(studentEmail, "@google.com");
+
+	student->name = Array_Copy(studentName);
+	student->surname = Array_Copy(studentSurname);
+	
+	student->address = Array_CreateFromString("Belize");
+	student->email = studentEmail;
 
 	student->age = (uint8_t)randomNumberBetween(12, 90);
 	student->id = (uint8_t)randomNumberBetween(1000, 9999);
@@ -100,21 +112,21 @@ Student* Student_CreateFromData(const char* const data) {
 
 	size_t index = 0;
 	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-	student->name = getFirstSubstringFromIndex(buffer, index);
+	student->name = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 
 	if (index != -1) {
 		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		student->surname = getFirstSubstringFromIndex(buffer, index);
+		student->surname = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 	}
 
 	if (index != -1) {
 		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		student->address = getFirstSubstringFromIndex(buffer, index);
+		student->address = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 	}
 
 	if (index != -1) {
 		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		student->email = getFirstSubstringFromIndex(buffer, index);
+		student->email = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
 	}
 
 	if (index != -1) {
@@ -145,25 +157,49 @@ Student* Student_CreateFromData(const char* const data) {
 	return student;
 }
 
-const Array* const Student_GetName(const Student* const student) {
+const char* const Student_GetName(const Student* const student) {
+	if (!student)
+		return NULL;
+	return Array_GetData(student->name);
+}
+
+const char* const Student_GetSurname(const Student* const student) {
+	if (!student)
+		return NULL;
+	return Array_GetData(student->surname);
+}
+
+const char* const Student_GetAddress(const Student* const student) {
+	if (!student)
+		return NULL;
+	return Array_GetData(student->address);
+}
+
+const char* const Student_GetEmail(const Student* const student) {
+	if (!student)
+		return NULL;
+	return Array_GetData(student->email);
+}
+
+const Array* const Student_GetNameArray(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->name;
 }
 
-const Array* const Student_GetSurname(const Student* const student) {
+const Array* const Student_GetSurnameArray(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->surname;
 }
 
-const Array* const Student_GetAddress(const Student* const student) {
+const Array* const Student_GetAddressArray(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->address;
 }
 
-const Array* const Student_GetEmail(const Student* const student) {
+const Array* const Student_GetEmailArray(const Student* const student) {
 	if (!student)
 		return NULL;
 	return student->email;

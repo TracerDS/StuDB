@@ -1,11 +1,13 @@
 #include <student.h>
 #include <studentlist.h>
 #include <array.h>
-#include <time.h>
 #include <names.h>
+#include <utils.h>
+
+#include <time.h>
 #include <conio.h>
 #include <windows.h>
-#include <utils.h>
+#include <locale.h>
 
 #define clrscr() printf("\x1b[2J\x1b[1;1H")
 
@@ -15,56 +17,49 @@ int MainFunc();
 StudentList* g_studentList;
 
 int main() {
+	setlocale(LC_ALL, "en_US.UTF-8");
+	SetConsoleCP(CP_UTF8);
+	SetConsoleOutputCP(CP_UTF8);
+
 	srand((unsigned int)time(NULL));
-	int status = 0;
+	Array_SetDebugMode(ARRAY_DEBUG_ALL);
 	InitNames();
-	/*
+
+	int status = 0;
 	g_studentList = StudentList_Create();
-
-
-	Array* a = Array_Create(3);
-	Array_EmplaceBack(a, "abc");
-	printf("%s\n", Array_GetData(a));
-	Array_Destroy(a);
-
-	//status = MainFunc();
+	
+	status = MainFunc();
 
 	StudentList_Destroy(g_studentList);
-	*/
 	DestroyNames();
 	return status;
 }
 
 int MainFunc() {
-	if (!StudentList_AddStudentsFromFile(g_studentList, "data.sdbf")) {
-		printf("Failed to allocate!");
-		return 1;
-	}
+	StudentList_GenerateRandom(g_studentList, 100);
+
+	StudentList_Sort(g_studentList, SORTINGTYPE_DEFAULT);
 
 	size_t size = StudentList_GetSize(g_studentList);
 	printf("Size: %llu\n", size);
-	
-	StudentList_GenerateRandom(g_studentList, 10);
 
-	/*
-	StudentList_AddStudentsFromFile(g_studentList, "data.sdbf");
+	FILE* file = fopen("students.csv", "w");
+	if (!file)
+		return 1;
 
-	Student* student = Student_CreateFromString("Jan", "Kowalski", "ul. Kowalska 1", "email", 18, 9987);
-	StudentList_AddStudent(g_studentList, student);
-
-	*/
-
-	for (int i = 0; i < size; i++) {
+	fprintf(file, "Name,Surname,Email,Address,Age,ID\n");
+	for (auto i = 0; i < size; i++) {
 		Student* student = StudentList_Get(g_studentList, i);
-		printf("Student: %s %s, %s, %s, %d, %d\n",
-			Array_GetData(Student_GetName(student)),
-			Array_GetData(Student_GetSurname(student)),
-			Array_GetData(Student_GetAddress(student)),
-			Array_GetData(Student_GetEmail(student)),
-			Student_GetAge(student),
-			Student_GetID(student)
-		);
+		const char* name = Student_GetName(student);
+		const char* surname = Student_GetSurname(student);
+		const char* email = Student_GetEmail(student);
+		const char* address = Student_GetAddress(student);
+		uint8_t age = Student_GetAge(student);
+		uint16_t ID = Student_GetID(student);
+
+		fprintf(file, "%s,%s,%s,%s,%d,%d\n", name, surname, email, address, age, ID);
 	}
+	fclose(file);
 
 	return 0;
 }

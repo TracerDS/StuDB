@@ -28,15 +28,22 @@ bool StudentList_GenerateRandom(StudentList* const list, size_t size) {
 	if (!list)
 		return false;
 
-	if (list->length + size >= list->reservedSize) {
-		if (!StudentList_Resize(list, list->length + size))
-			return false;
+	size_t newSize = list->length + size;
+
+	if (!StudentList_Reserve(list, newSize)) {
+		return false;
 	}
 
 	for (size_t i = 0; i < size; i++) {
 		Student* student = Student_CreateRandom();
 		if (!student)
 			return false;
+
+		int id = Student_GetID(student);
+		while (StudentList_IsIDReserved(list, id++)) {
+			id++;
+		}
+		Student_SetID(student, id);
 
 		StudentList_AddStudent(list, student);
 	}
@@ -47,7 +54,7 @@ bool StudentList_Reserve(StudentList* const list, size_t size) {
 	if (!list)
 		return false;
 
-	if (list->reservedSize <= size)
+	if (list->reservedSize > size)
 		return true;
 
 	return StudentList_Resize(list, size);
@@ -56,18 +63,17 @@ bool StudentList_Resize(StudentList* const list, size_t size) {
 	if (!list)
 		return false;
 
-	if (list->reservedSize == size)
+	if (list->reservedSize > size)
 		return true;
 
-	Student** temp = list->students;
-	list->reservedSize = size + (list->reservedSize < size ? 1 : 0);
-	list->students = (Student**)calloc(list->reservedSize, sizeof(Student*));
-	if (!list->students)
+	size_t newSize = size + 1;
+	Student** temp = realloc(list->students, newSize * sizeof(Student*));
+	if (!temp) {
 		return false;
+	}
 
-	memcpy(list->students, temp, list->reservedSize < size ? list->length : size);
-	free(temp);
-	memset(list->students + list->length, 0, list->reservedSize - list->length);
+	list->students = temp;
+	list->reservedSize = newSize;
 	return true;
 }
 
@@ -75,13 +81,13 @@ bool StudentList_AddStudent(StudentList* const list, Student* const value) {
 	if (!list || !value)
 		return false;
 
-	if (list->length >= list->reservedSize) {
-		size_t newSize = nearestMultipleOf(list->length + 2, 8);
-		if (!StudentList_Resize(list, newSize))
-			return false;
+	if (!StudentList_Reserve(list, nearestMultipleOf(list->length + 1, 8))) {
+		return false;
+	}
 
-		list->students[list->length++] = value;
-		return true;
+	uint16_t id = 1000;
+	while (StudentList_IsIDReserved(list, Student_GetID(value))) {
+		Student_SetID(value, id++);
 	}
 
 	list->students[list->length++] = value;
@@ -95,22 +101,6 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 	char* buffer = readFile(filepath, &fileSize);
 	if (!buffer)
 		return false;
-
-	fseek(file, 0, SEEK_END);
-	long fileSize = ftell(file);
-	if (fileSize == -1) {
-		fclose(file);
-		return false;
-	}
-	fseek(file, 0, SEEK_SET);
-
-	char* buffer = (char*)calloc(fileSize + 1, sizeof(char));
-	if (!buffer) {
-		fclose(file);
-		return false;
-	}
-	fread(buffer, sizeof(char), fileSize, file);
-	fclose(file);
 
 	size_t offset = 0;
 	while (offset <= fileSize) {
@@ -156,6 +146,89 @@ size_t StudentList_GetReservedSize(const StudentList* const list) {
 	if (!list)
 		return -1;
 	return list->reservedSize;
+}
+
+void quicksort(Student** students, size_t left, size_t right, SortingType type) {
+	size_t i = left;
+	size_t j = right;
+	Student* tmp;
+	Student* pivot = students[(left + right) / 2];
+
+	SortingFunction sortingFunc;
+
+	switch (type) {
+		case SORTINGTYPE_AGE:
+			sortingFunc = StudentList_CompareAge;
+			break;
+		case SORTINGTYPE_ID:
+		case SORTINGTYPE_DEFAULT:
+		default:
+			sortingFunc = StudentList_CompareID;
+			break;
+	}
+
+	while (i <= j) {
+		int result = sortingFunc(students[i], pivot);
+
+		while (result == -1) {
+			result = sortingFunc(students[++i], pivot);
+		}
+
+		while (result == 1) {
+			result = sortingFunc(students[--j], pivot);
+		}
+
+		if (i <= j) {
+			tmp = students[i];
+			students[i] = students[j];
+			students[j] = tmp;
+			i++;
+			j--;
+		}
+	}
+
+	if (left < j)
+		quicksort(students, left, j, type);
+	if (i < right)
+		quicksort(students, i, right, type);
+}
+
+int StudentList_CompareAge(const Student* const a, const Student* const b) {
+	uint8_t ageA = Student_GetAge(a);
+	uint8_t ageB = Student_GetAge(b);
+	if (ageA < ageB) return -1;
+	if (ageA > ageB) return 1;
+	return 0;
+}
+int StudentList_CompareID(const Student* const a, const Student* const b) {
+	uint16_t idA = Student_GetID(a);
+	uint16_t idB = Student_GetID(b);
+	if (idA < idB) return -1;
+	if (idA > idB) return 1;
+	return 0;
+}
+
+bool StudentList_Sort(const StudentList* const list, SortingType type) {
+	if (!list) {
+		return false;
+	}
+
+	quicksort(list->students, 0, list->length - 1, type);
+	return true;
+}
+
+bool StudentList_IsIDReserved(const StudentList* const list, uint16_t id) {
+	if (!list)
+		return false;
+
+	for (size_t i = 0; i < list->length; i++) {
+		Student* student = list->students[i];
+		if (!student)
+			continue;
+		if (Student_GetID(student) == id)
+			return true;
+	}
+	return false;
 }
 
 void StudentList_Destroy(StudentList* list) {

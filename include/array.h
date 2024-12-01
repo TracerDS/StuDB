@@ -7,7 +7,14 @@
 typedef struct Array Array;
 
 #ifdef _DEBUG
+enum {
+	ARRAY_DEBUG_CONSTRUCTORS = (1 << 0),
+	ARRAY_DEBUG_DESTRUCTORS = (1 << 1),
+	ARRAY_DEBUG_RESIZE = (1 << 2),
+	ARRAY_DEBUG_ALL = (1 << 3) - 1,
+};
 void Array_SetDebugMode(uint8_t value);
+uint8_t Array_GetDebugMode();
 #endif
 
 Array* Array_Create(size_t size);
@@ -30,18 +37,18 @@ void Array_Destroy(Array* array);
 
 // ------------------------------
 
-typedef struct StringArray StringArray;
+typedef struct Vector Vector;
 
-StringArray* StringArray_Create(size_t size);
-bool StringArray_Reserve(StringArray* array, size_t size);
-bool StringArray_Resize(StringArray* array, size_t size);
+Vector* Vector_Create(size_t size);
+bool Vector_Reserve(Vector* array, size_t size);
+bool Vector_Resize(Vector* array, size_t size);
 
-bool StringArray_PushBack(StringArray* array, const char* const value);
-bool StringArray_PushBackArray(StringArray* array, const Array* const value);
+bool Vector_PushBack(Vector* array, const char* const value);
+bool Vector_PushBackArray(Vector* array, const Array* const value);
 
-const Array* const StringArray_At(const StringArray* const array, size_t index);
+const Array* const Vector_At(const Vector* const array, size_t index);
 
-size_t StringArray_GetSize(const StringArray* const array);
-size_t StringArray_GetReservedSize(const StringArray* const array);
+size_t Vector_GetSize(const Vector* const array);
+size_t Vector_GetReservedSize(const Vector* const array);
 
-void StringArray_Destroy(StringArray* array);
+void Vector_Destroy(Vector* array);

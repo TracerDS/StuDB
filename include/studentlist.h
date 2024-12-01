@@ -7,6 +7,8 @@ typedef struct StudentList StudentList;
 
 StudentList* StudentList_Create();
 
+bool StudentList_GenerateRandom(StudentList* const list, size_t size);
+
 bool StudentList_Reserve(StudentList* const list, size_t size);
 bool StudentList_Resize(StudentList* const list, size_t size);
 

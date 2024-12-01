@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <array.h>
 
 struct StudentList {
 	Student** students;
@@ -21,6 +22,25 @@ StudentList* StudentList_Create() {
 	studentList->students = (Student**)calloc(studentList->reservedSize, sizeof(Student*));
 
 	return studentList;
+}
+
+bool StudentList_GenerateRandom(StudentList* const list, size_t size) {
+	if (!list)
+		return false;
+
+	if (list->length + size >= list->reservedSize) {
+		if (!StudentList_Resize(list, list->length + size))
+			return false;
+	}
+
+	for (size_t i = 0; i < size; i++) {
+		Student* student = Student_CreateRandom();
+		if (!student)
+			return false;
+
+		StudentList_AddStudent(list, student);
+	}
+	return true;
 }
 
 bool StudentList_Reserve(StudentList* const list, size_t size) {
@@ -71,8 +91,9 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 	if (!list)
 		return false;
 
-	FILE* file = fopen(filepath, "r");
-	if (!file)
+	size_t fileSize = 0;
+	char* buffer = readFile(filepath, &fileSize);
+	if (!buffer)
 		return false;
 
 	fseek(file, 0, SEEK_END);

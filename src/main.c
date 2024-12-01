@@ -1,9 +1,11 @@
 #include <student.h>
 #include <studentlist.h>
 #include <array.h>
-
+#include <time.h>
+#include <names.h>
 #include <conio.h>
 #include <windows.h>
+#include <utils.h>
 
 #define clrscr() printf("\x1b[2J\x1b[1;1H")
 
@@ -13,12 +15,23 @@ int MainFunc();
 StudentList* g_studentList;
 
 int main() {
+	srand((unsigned int)time(NULL));
+	int status = 0;
+	InitNames();
+	/*
 	g_studentList = StudentList_Create();
 
-	int status = MainFunc();
+
+	Array* a = Array_Create(3);
+	Array_EmplaceBack(a, "abc");
+	printf("%s\n", Array_GetData(a));
+	Array_Destroy(a);
+
+	//status = MainFunc();
 
 	StudentList_Destroy(g_studentList);
-
+	*/
+	DestroyNames();
 	return status;
 }
 
@@ -30,11 +43,24 @@ int MainFunc() {
 
 	size_t size = StudentList_GetSize(g_studentList);
 	printf("Size: %llu\n", size);
+	
+	StudentList_GenerateRandom(g_studentList, 10);
+
+	/*
+	StudentList_AddStudentsFromFile(g_studentList, "data.sdbf");
+
+	Student* student = Student_CreateFromString("Jan", "Kowalski", "ul. Kowalska 1", "email", 18, 9987);
+	StudentList_AddStudent(g_studentList, student);
+
+	*/
 
 	for (int i = 0; i < size; i++) {
 		Student* student = StudentList_Get(g_studentList, i);
-		printf("Student: %s, %d, %d\n",
-			Student_GetName(student),
+		printf("Student: %s %s, %s, %s, %d, %d\n",
+			Array_GetData(Student_GetName(student)),
+			Array_GetData(Student_GetSurname(student)),
+			Array_GetData(Student_GetAddress(student)),
+			Array_GetData(Student_GetEmail(student)),
 			Student_GetAge(student),
 			Student_GetID(student)
 		);

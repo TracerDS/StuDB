@@ -12,6 +12,7 @@ struct {
 	bool constructors;
 	bool destructors;
 	bool resize;
+	bool misc;
 } DebugMode;
 #endif
 
@@ -20,12 +21,14 @@ void Array_SetDebugMode(uint8_t value) {
 	DebugMode.constructors = value & ARRAY_DEBUG_CONSTRUCTORS;
 	DebugMode.destructors = value & ARRAY_DEBUG_DESTRUCTORS;
 	DebugMode.resize = value & ARRAY_DEBUG_RESIZE;
+	DebugMode.misc = value & ARRAY_DEBUG_MISC;
 }
 uint8_t Array_GetDebugMode() {
 	uint8_t value = 0;
 	if (DebugMode.constructors) value |= ARRAY_DEBUG_CONSTRUCTORS;
 	if (DebugMode.destructors) value |= ARRAY_DEBUG_DESTRUCTORS;
 	if (DebugMode.resize) value |= ARRAY_DEBUG_RESIZE;
+	if (DebugMode.misc) value |= ARRAY_DEBUG_MISC;
 	return value;
 }
 #endif
@@ -289,7 +292,8 @@ Vector* Vector_Create(size_t size) {
 bool Vector_Reserve(Vector* array, size_t size) {
 	if (!array) {
 #ifdef _DEBUG
-		LOG_ERR("Vector is NULL");
+		if (DebugMode.resize)
+			LOG_ERR("Vector is NULL");
 #endif
 		return false;
 	}
@@ -302,7 +306,8 @@ bool Vector_Reserve(Vector* array, size_t size) {
 bool Vector_Resize(Vector* array, size_t size) {
 	if (!array) {
 #ifdef _DEBUG
-		LOG_ERR("Vector is NULL");
+		if (DebugMode.resize)
+			LOG_ERR("Vector is NULL");
 #endif
 		return false;
 	}
@@ -370,14 +375,16 @@ bool Vector_PushBackArray(Vector* array, const Array* const value) {
 const Array* const Vector_At(const Vector* const array, size_t index) {
 	if (!array) {
 #ifdef _DEBUG
-		LOG_ERR("Vector is NULL");
+		if (DebugMode.misc)
+			LOG_ERR("Vector is NULL");
 #endif
 		return NULL;
 	}
 
 	if (index >= array->length) {
 #ifdef _DEBUG
-		LOG_ERR("Vector index out of bounds");
+		if (DebugMode.misc)
+			LOG_ERR("Vector index out of bounds");
 #endif
 		return NULL;
 	}
@@ -386,35 +393,29 @@ const Array* const Vector_At(const Vector* const array, size_t index) {
 }
 
 size_t Vector_GetSize(const Vector* const array) {
-	if (!array) {
-#ifdef _DEBUG
-		LOG_ERR("Vector is NULL");
-#endif
+	if (!array)
 		return -1;
-	}
 	return array->length;
 }
 size_t Vector_GetReservedSize(const Vector* const array) {
-	if (!array) {
-#ifdef _DEBUG
-		LOG_ERR("Vector is NULL");
-#endif
+	if (!array)
 		return -1;
-	}
 	return array->reservedSize;
 }
 
 void Vector_Destroy(Vector* array) {
 	if (!array) {
 #ifdef _DEBUG
-		LOG_ERR("Vector is NULL");
+		if (DebugMode.destructors)
+			LOG_ERR("Vector is NULL");
 #endif
 		return;
 	}
 
 	for (size_t i = 0; i < array->length; i++) {
 #ifdef _DEBUG
-		LOG("Deleting element %llu in 0x%08" PRIX64 "...", i, (uintptr_t)array);
+		if (DebugMode.destructors)
+			LOG("Deleting element %llu in 0x%08" PRIX64 "...", i, (uintptr_t)array);
 #endif
 		Array_Destroy(array->data[i]);
 		array->data[i] = NULL;

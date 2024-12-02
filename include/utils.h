@@ -2,6 +2,13 @@
 
 #include <stddef.h>
 
+#ifdef min
+#	undef min
+#endif
+#ifdef max
+#	undef max
+#endif
+
 #define LOG_STRING(x) "[" __DATE__ " " __TIME__ "] " x
 
 #define LOG_HELPER_CUSTOM(stream, msg, ...) fprintf(stream, LOG_STRING(msg) " - %s:%d\n", \
@@ -28,3 +35,6 @@ const char* toLower(char* const string);
 const char* toUpper(char* const string);
 const char* capitalize(char* const string);
 const char* transform(char* const string, TransformFunc function);
+
+int min(int a, int b);
+int max(int a, int b);

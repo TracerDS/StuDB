@@ -85,7 +85,7 @@ Student* Student_CreateRandom() {
 	student->email = studentEmail;
 
 	student->age = (uint8_t)randomNumberBetween(12, 90);
-	student->id = (uint8_t)randomNumberBetween(1000, 9999);
+	student->id = (uint8_t)randomNumberBetween(MIN_ID_VALUE, MAX_ID_VALUE);
 
 	return student;
 }
@@ -110,38 +110,54 @@ Student* Student_CreateFromData(const char* const data) {
 	student->age = 0;
 	student->id = 0;
 
-	size_t index = 0;
-	index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-	student->name = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
+	size_t initIndex = 0;
+	size_t separatorIndex = 0;
 
-	if (index != -1) {
-		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		student->surname = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
+	// Name
+	if (separatorIndex != -1) {
+		separatorIndex = findSubstring(buffer + initIndex, STUDENT_DATA_SEPARATOR);
+		student->name = Array_CreateFromString(getFirstSubstringFromIndex(buffer + initIndex, separatorIndex));
+		initIndex += separatorIndex + 1;
 	}
 
-	if (index != -1) {
-		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		student->address = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
+	// Surname
+	if (separatorIndex != -1) {
+		separatorIndex = findSubstring(buffer + initIndex, STUDENT_DATA_SEPARATOR);
+		student->surname = Array_CreateFromString(getFirstSubstringFromIndex(buffer + initIndex, separatorIndex));
+		initIndex += separatorIndex + 1;
 	}
 
-	if (index != -1) {
-		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		student->email = Array_CreateFromString(getFirstSubstringFromIndex(buffer, index));
+	// Address
+	if (separatorIndex != -1) {
+		separatorIndex = findSubstring(buffer + initIndex, STUDENT_DATA_SEPARATOR);
+		student->address = Array_CreateFromString(getFirstSubstringFromIndex(buffer + initIndex, separatorIndex));
+		initIndex += separatorIndex + 1;
 	}
 
-	if (index != -1) {
-		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		char* temp = getFirstSubstringFromIndex(buffer, index);
+	// Email
+	if (separatorIndex != -1) {
+		separatorIndex = findSubstring(buffer + initIndex, STUDENT_DATA_SEPARATOR);
+		student->email = Array_CreateFromString(getFirstSubstringFromIndex(buffer + initIndex, separatorIndex));
+		initIndex += separatorIndex + 1;
+	}
+
+	// Age
+	if (separatorIndex != -1) {
+		separatorIndex = findSubstring(buffer + initIndex, STUDENT_DATA_SEPARATOR);
+		char* temp = getFirstSubstringFromIndex(buffer + initIndex, separatorIndex);
 		if (temp) {
+			initIndex += separatorIndex + 1;
 			student->age = (uint8_t)strtoul(temp, NULL, 10);
 			free(temp);
 		}
 	}
 
-	if (index != -1) {
-		index = findSubstring(buffer + index, STUDENT_DATA_SEPARATOR);
-		char* temp = getFirstSubstringFromIndex(buffer, index);
+	// ID
+	if (separatorIndex != -1) {
+		separatorIndex = findSubstring(buffer + initIndex, STUDENT_DATA_SEPARATOR);
+		char* temp = getFirstSubstringFromIndex(buffer + initIndex, separatorIndex);
 		if (temp) {
+			initIndex += separatorIndex + 1;
 			student->id = (uint16_t)strtoul(temp, NULL, 10);
 			free(temp);
 		}

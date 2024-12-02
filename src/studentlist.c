@@ -1,10 +1,10 @@
-#include <studentlist.h>
-#include <utils.h>
-
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <array.h>
+
+#include <studentlist.h>
+#include <utils.h>
 
 struct StudentList {
 	Student** students;
@@ -39,10 +39,9 @@ bool StudentList_GenerateRandom(StudentList* const list, size_t size) {
 		if (!student)
 			return false;
 
-		int id = Student_GetID(student);
-		while (StudentList_IsIDReserved(list, id++)) {
-			id++;
-		}
+		uint16_t id = min(MAX_ID_VALUE, max(MIN_ID_VALUE, Student_GetID(student))) - 1;
+
+		while (StudentList_IsIDReserved(list, ++id));
 		Student_SetID(student, id);
 
 		StudentList_AddStudent(list, student);
@@ -85,8 +84,9 @@ bool StudentList_AddStudent(StudentList* const list, Student* const value) {
 		return false;
 	}
 
-	uint16_t id = 1000;
-	while (StudentList_IsIDReserved(list, Student_GetID(value))) {
+	uint16_t id = Student_GetID(value);
+	if(id < MIN_ID_VALUE)
+	while (StudentList_IsIDReserved(list, id)) {
 		Student_SetID(value, id++);
 	}
 
@@ -94,6 +94,9 @@ bool StudentList_AddStudent(StudentList* const list, Student* const value) {
 	return true;
 }
 bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const filepath) {
+	return StudentList_AddStudentsFromCSV(list, filepath, false);
+}
+bool StudentList_AddStudentsFromCSV(StudentList* const list, const char* const filepath, bool withHeader) {
 	if (!list)
 		return false;
 
@@ -102,15 +105,21 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 	if (!buffer)
 		return false;
 
+	bool wasHeader = false;
 	size_t offset = 0;
 	while (offset <= fileSize) {
 		size_t sizePos = findSubstring(buffer + offset, "\n");
 		if (sizePos == -1 || sizePos >= fileSize) {
 			sizePos = fileSize - offset;
 		}
+		if (!wasHeader && withHeader) {
+			wasHeader = true;
+			offset += ++sizePos;
+			continue;
+		}
 
 		char* temp = (char*)calloc(sizePos + 1, sizeof(char));
-		if(!temp) {
+		if (!temp) {
 			free(buffer);
 			return false;
 		}
@@ -148,49 +157,54 @@ size_t StudentList_GetReservedSize(const StudentList* const list) {
 	return list->reservedSize;
 }
 
-void quicksort(Student** students, size_t left, size_t right, SortingType type) {
-	size_t i = left;
-	size_t j = right;
-	Student* tmp;
-	Student* pivot = students[(left + right) / 2];
+void quicksort(Student** students, size_t left, size_t right, SortingFunction sortingFunc) {
+    size_t i = left;
+    size_t j = right;
+    Student* tmp;
+    Student* pivot = students[(left + right) / 2];
 
-	SortingFunction sortingFunc;
+    while (i <= j) {
+        while (sortingFunc(students[i], pivot) < 0) {
+            i++;
+        }
+        while (sortingFunc(students[j], pivot) > 0) {
+            j--;
+        }
+        if (i <= j) {
+            tmp = students[i];
+            students[i] = students[j];
+            students[j] = tmp;
+            i++;
+            j--;
+        }
+    }
 
-	switch (type) {
-		case SORTINGTYPE_AGE:
-			sortingFunc = StudentList_CompareAge;
-			break;
-		case SORTINGTYPE_ID:
-		case SORTINGTYPE_DEFAULT:
-		default:
-			sortingFunc = StudentList_CompareID;
-			break;
-	}
+    if (left < j) {
+        quicksort(students, left, j, sortingFunc);
+    }
+    if (i < right) {
+        quicksort(students, i, right, sortingFunc);
+    }
+}
 
-	while (i <= j) {
-		int result = sortingFunc(students[i], pivot);
+void bubblesort(StudentList* data, SortingFunction func) {
+    if (!data || !func)
+		return;
 
-		while (result == -1) {
-			result = sortingFunc(students[++i], pivot);
-		}
-
-		while (result == 1) {
-			result = sortingFunc(students[--j], pivot);
-		}
-
-		if (i <= j) {
-			tmp = students[i];
-			students[i] = students[j];
-			students[j] = tmp;
-			i++;
-			j--;
-		}
-	}
-
-	if (left < j)
-		quicksort(students, left, j, type);
-	if (i < right)
-		quicksort(students, i, right, type);
+    bool swapped;
+    for (size_t i = 0; i < data->length - 1; i++) {
+        swapped = false;
+        for (size_t j = 0; j < data->length - i - 1; j++) {
+			if (func(data->students[j], data->students[j + 1]) <= 0)
+				continue;
+			
+            Student* temp = data->students[j];
+            data->students[j] = data->students[j + 1];
+            data->students[j + 1] = temp;
+            swapped = true;
+        }
+        if (!swapped) break;
+    }
 }
 
 int StudentList_CompareAge(const Student* const a, const Student* const b) {
@@ -208,12 +222,29 @@ int StudentList_CompareID(const Student* const a, const Student* const b) {
 	return 0;
 }
 
-bool StudentList_Sort(const StudentList* const list, SortingType type) {
+bool StudentList_Sort(StudentList* list, SortingType type) {
 	if (!list) {
 		return false;
 	}
 
-	quicksort(list->students, 0, list->length - 1, type);
+	if (list->length < 2) {
+		return false;
+	}
+
+	SortingFunction sortingFunc;
+
+	switch (type) {
+		case SORTINGTYPE_AGE:
+			sortingFunc = StudentList_CompareAge;
+			break;
+		case SORTINGTYPE_ID:
+		case SORTINGTYPE_DEFAULT:
+		default:
+			sortingFunc = StudentList_CompareID;
+			break;
+	}
+
+	bubblesort(list, sortingFunc);
 	return true;
 }
 

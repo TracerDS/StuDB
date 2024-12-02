@@ -6,6 +6,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#ifdef min
+#	undef min
+#endif
+#ifdef max
+#	undef max
+#endif
+
 char* getFirstSubstringFromIndex(const char* const string, size_t index) {
 	if (index == -1)
 		index = strlen(string);
@@ -136,4 +143,11 @@ const char* transform(char* const string, TransformFunc function) {
 		string[i] = function(string[i]);
 	}
 	return string;
+}
+
+int min(int a, int b) {
+	return a < b ? a : b;
+}
+int max(int a, int b) {
+	return a > b ? a : b;
 }

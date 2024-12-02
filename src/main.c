@@ -23,6 +23,7 @@ int main() {
 
 	srand((unsigned int)time(NULL));
 	Array_SetDebugMode(ARRAY_DEBUG_ALL);
+	Array_SetDebugMode(ARRAY_DEBUG_NOTHING);
 	InitNames();
 
 	int status = 0;
@@ -36,13 +37,26 @@ int main() {
 }
 
 int MainFunc() {
-	StudentList_GenerateRandom(g_studentList, 100);
+	//StudentList_GenerateRandom(g_studentList, 100);
+	StudentList_AddStudentsFromCSV(g_studentList, "students.csv", true);
 
 	StudentList_Sort(g_studentList, SORTINGTYPE_DEFAULT);
 
 	size_t size = StudentList_GetSize(g_studentList);
-	printf("Size: %llu\n", size);
 
+	for (size_t i = 0; i < size; i++) {
+		Student* student = StudentList_Get(g_studentList, i);
+		const char* name = Student_GetName(student);
+		const char* surname = Student_GetSurname(student);
+		const char* email = Student_GetEmail(student);
+		const char* address = Student_GetAddress(student);
+		uint8_t age = Student_GetAge(student);
+		uint16_t ID = Student_GetID(student);
+
+		fprintf(stdout, "%s,%s,%s,%s,%d,%d\n", name, surname, email, address, age, ID);
+	}
+
+	/*
 	FILE* file = fopen("students.csv", "w");
 	if (!file)
 		return 1;
@@ -58,8 +72,10 @@ int MainFunc() {
 		uint16_t ID = Student_GetID(student);
 
 		fprintf(file, "%s,%s,%s,%s,%d,%d\n", name, surname, email, address, age, ID);
+		fflush(file);
 	}
 	fclose(file);
+	*/
 
 	return 0;
 }

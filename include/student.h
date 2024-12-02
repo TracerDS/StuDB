@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <array.h>
 
+#define MIN_ID_VALUE 1000
+#define MAX_ID_VALUE 9999
+
 typedef struct Student Student;
 
 Student* Student_Create(

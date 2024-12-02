@@ -8,10 +8,12 @@ typedef struct Array Array;
 
 #ifdef _DEBUG
 enum {
+	ARRAY_DEBUG_NOTHING = 0,
 	ARRAY_DEBUG_CONSTRUCTORS = (1 << 0),
 	ARRAY_DEBUG_DESTRUCTORS = (1 << 1),
 	ARRAY_DEBUG_RESIZE = (1 << 2),
-	ARRAY_DEBUG_ALL = (1 << 3) - 1,
+	ARRAY_DEBUG_MISC = (1 << 3),
+	ARRAY_DEBUG_ALL = (ARRAY_DEBUG_MISC << 1) - 1,
 };
 void Array_SetDebugMode(uint8_t value);
 uint8_t Array_GetDebugMode();

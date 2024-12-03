@@ -207,6 +207,31 @@ void bubblesort(StudentList* data, SortingFunction func) {
     }
 }
 
+void StudentList_Remove(StudentList* list, const Student* const student) {
+	if (!list)
+		return;
+	
+	size_t pos = 0;
+	for (; pos < list->length; ++pos) {
+		if (student != list->students[pos])
+			continue;
+
+		Student_Destroy(list->students[pos]);
+		list->students[pos] = NULL;
+		break;
+	}
+	
+	// list -> length - 1 + 1
+	Student** temp = malloc(nearestMultipleOf(list->length, 8) * sizeof(Student*));
+	if (!temp)
+		return;
+
+	memcpy(temp, list->students, (pos - 1) * sizeof(Student*));
+	memcpy(temp + pos, list->students + pos + 1, (list->length - pos - 1) * sizeof(Student*));
+	free(list->students);
+	list->students = temp;
+}
+
 int StudentList_CompareAge(const Student* const a, const Student* const b) {
 	uint8_t ageA = Student_GetAge(a);
 	uint8_t ageB = Student_GetAge(b);
@@ -220,6 +245,20 @@ int StudentList_CompareID(const Student* const a, const Student* const b) {
 	if (idA < idB) return -1;
 	if (idA > idB) return 1;
 	return 0;
+}
+
+Student* StudentList_GetByID(const StudentList* const list, uint16_t id) {
+	if (!list)
+		return NULL;
+
+	for (size_t i = 0; i < list->length; i++) {
+		Student* student = list->students[i];
+		if (!student)
+			continue;
+		if (Student_GetID(student) == id)
+			return student;
+	}
+	return NULL;
 }
 
 bool StudentList_Sort(StudentList* list, SortingType type) {

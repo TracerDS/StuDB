@@ -32,8 +32,11 @@ Student* StudentList_Get(const StudentList* const list, size_t index);
 size_t StudentList_GetSize(const StudentList* const list);
 size_t StudentList_GetReservedSize(const StudentList* const list);
 
+void StudentList_Remove(StudentList* list, const Student* const student);
+
 int StudentList_CompareAge(const Student* const a, const Student* const b);
 int StudentList_CompareID(const Student* const a, const Student* const b);
+Student* StudentList_GetByID(const StudentList* const list, uint16_t id);
 
 bool StudentList_Sort(StudentList* list, SortingType type);
 bool StudentList_IsIDReserved(const StudentList* const list, uint16_t id);

@@ -99,7 +99,7 @@ int MainFunc() {
 						scanf_s(" %s", &ageStr, 3);
 						ageTemp = strtoul(ageStr, NULL, 10);
 						if (ageTemp < MIN_AGE_VALUE || ageTemp > MAX_AGE_VALUE) {
-							printf("Nieprawidłowy wiek!\n");
+							fprintf(stderr, "Nieprawidłowy wiek!\n");
 						}
 					} while (ageTemp < MIN_AGE_VALUE || ageTemp > MAX_AGE_VALUE);
 					age = (uint8_t)ageTemp;
@@ -114,7 +114,7 @@ int MainFunc() {
 						scanf_s(" %s", &idStr, 5);
 						idTemp = strtoul(idStr, NULL, 10);
 						if (idTemp < MIN_ID_VALUE || idTemp > MAX_ID_VALUE) {
-							printf("Nieprawidłowe ID!\n");
+							fprintf(stderr, "Nieprawidłowe ID!\n");
 						}
 					} while (idTemp < MIN_ID_VALUE || idTemp > MAX_ID_VALUE);
 					id = (uint16_t)idTemp;
@@ -137,10 +137,33 @@ int MainFunc() {
 				);				
 				break;
 			}
+			case '2':
+			{
+				uint16_t id;
+				{
+					char idStr[6] = { 0 };
+					unsigned long idTemp;
+					do {
+						printf("ID [%d - %d]: ", MIN_ID_VALUE, MAX_ID_VALUE);
+						scanf_s(" %s", &idStr, 5);
+						idTemp = strtoul(idStr, NULL, 10);
+						if (idTemp < MIN_ID_VALUE || idTemp > MAX_ID_VALUE) {
+							fprintf(stderr, "Nieprawidłowe ID!\n");
+						}
+					} while (idTemp < MIN_ID_VALUE || idTemp > MAX_ID_VALUE);
+					id = (uint16_t)idTemp;
+				}
+				Student* student = StudentList_GetByID(g_studentList, id);
+				if (!student) {
+					fprintf(stderr, "Nie ma takiego studenta o ID równym \"%d\"!\n", id);
+					break;
+				}
+				break;
+			}
 			case '5':
 				return 0;
 			default:
-				printf("Nieznana opcja!\n");
+				fprintf(stderr, "Nieznana opcja!\n");
 				break;
 		}
 		(void)_getch();

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #ifdef min
 #	undef min
@@ -77,8 +78,8 @@ size_t nearestMultipleOf(size_t num, size_t multiple) {
 }
 
 char* readFile(const char* const path, size_t* size) {
-	FILE* file = fopen(path, "r");
-	if (!file)
+	FILE* file;
+	if (fopen_s(file, path, "r") || !file)
 		return NULL;
 
 	fseek(file, 0, SEEK_END);
@@ -103,8 +104,8 @@ char* readFile(const char* const path, size_t* size) {
 }
 
 void appendFile(const char* const path, const char* const data) {
-	FILE* file = fopen(path, "a");
-	if (!file)
+	FILE* file;
+	if(fopen_s(file, path, "a") || !file);
 		return;
 
 	fwrite(data, sizeof(char), strlen(data), file);
@@ -150,4 +151,63 @@ int min(int a, int b) {
 }
 int max(int a, int b) {
 	return a > b ? a : b;
+}
+
+char** split(char* string, const char delimiter, size_t* length) {
+	char** result = 0;
+	size_t count = 0;
+	char* tmp = string;
+	char* last_comma = 0;
+	char delim[2];
+	delim[0] = delimiter;
+	delim[1] = 0;
+
+	/* Count how many elements will be extracted. */
+	while (*tmp) {
+		if (delimiter == *tmp) {
+			count++;
+			last_comma = tmp;
+		}
+		tmp++;
+	}
+
+	/* Add space for trailing token. */
+	count += last_comma < (string + strlen(string) - 1);
+
+	/* Add space for terminating null string so caller
+	   knows where the list of returned strings ends. */
+	count++;
+
+	result = malloc(sizeof(char*) * count);
+
+	char* context = NULL;
+	if (result) {
+		size_t idx = 0;
+		char* token = strtok_s(string, delim, &context);
+
+		while (token) {
+			assert(idx < count);
+			result[idx++] = _strdup(token);
+			token = strtok_s(0, delim, &context);
+		}
+		assert(idx == count - 1);
+		result[idx] = 0;
+	}
+
+	if (length)
+		*length = count - 1;
+
+	return result;
+}
+
+bool startsWith(const char* const string, const char* const with) {
+	return strncmp(string, with, strlen(with)) == 0;
+}
+
+bool endsWith(const char* const string, const char* const with) {
+	size_t sizeStr = strlen(string);
+	size_t withLen = strlen(with);
+	if (sizeStr < withLen)
+		return false;
+	return strncmp(string + sizeStr - withLen, with, withLen) == 0;
 }

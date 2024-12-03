@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef min
 #	undef min
@@ -38,3 +39,7 @@ const char* transform(char* const string, TransformFunc function);
 
 int min(int a, int b);
 int max(int a, int b);
+
+char** split(char* string, const char delimiter, size_t* length);
+bool startsWith(const char* const string, const char* const with);
+bool endsWith(const char* const string, const char* const with);

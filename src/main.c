@@ -8,6 +8,7 @@
 #include <conio.h>
 #include <windows.h>
 #include <locale.h>
+#include <inttypes.h>
 
 #define clrscr() printf("\x1b[2J\x1b[1;1H")
 
@@ -56,6 +57,95 @@ int MainFunc() {
 		fprintf(stdout, "%s,%s,%s,%s,%d,%d\n", name, surname, email, address, age, ID);
 	}
 
+	while (true) {
+		clrscr();
+		printf("/==================================\\\n");
+		printf("|          BAZA STUDENCKA          |\n");
+		printf("\\==================================/\n");
+		printf("\nDostepne opcje:\n"
+			"[1] Dodaj studenta\n"
+			"[2] Usun studenta\n"
+			"[3] Wczytaj studentów\n"
+			"[4] Wyswietl studentów\n"
+			"[5] Wyjdź\n"
+		);
+		char option = _getch();
+		printf("\n");
+		switch (option) {
+			case '1':
+			{
+				char name[20];
+				printf("Imię: ");
+				scanf_s(" %s", name, 20);
+
+				char surname[20];
+				printf("Nazwisko: ");
+				scanf_s(" %s", surname, 20);
+
+				char address[20];
+				printf("Adres: ");
+				scanf_s(" %s", address, 20);
+
+				char email[50];
+				printf("E-Mail: ");
+				scanf_s(" %s", email, 50);
+
+				uint8_t age;
+				{
+					char ageStr[4] = { 0 };
+					unsigned long ageTemp;
+					do {
+						printf("Wiek [%d - %d]: ", MIN_AGE_VALUE, MAX_AGE_VALUE);
+						scanf_s(" %s", &ageStr, 3);
+						ageTemp = strtoul(ageStr, NULL, 10);
+						if (ageTemp < MIN_AGE_VALUE || ageTemp > MAX_AGE_VALUE) {
+							printf("Nieprawidłowy wiek!\n");
+						}
+					} while (ageTemp < MIN_AGE_VALUE || ageTemp > MAX_AGE_VALUE);
+					age = (uint8_t)ageTemp;
+				}
+
+				uint16_t id;
+				{
+					char idStr[6] = { 0 };
+					unsigned long idTemp;
+					do {
+						printf("ID [%d - %d]: ", MIN_ID_VALUE, MAX_ID_VALUE);
+						scanf_s(" %s", &idStr, 5);
+						idTemp = strtoul(idStr, NULL, 10);
+						if (idTemp < MIN_ID_VALUE || idTemp > MAX_ID_VALUE) {
+							printf("Nieprawidłowe ID!\n");
+						}
+					} while (idTemp < MIN_ID_VALUE || idTemp > MAX_ID_VALUE);
+					id = (uint16_t)idTemp;
+				}
+				
+				Student* student = Student_CreateFromString(name, surname, address, email, age, id);
+				if (!student || !StudentList_AddStudent(g_studentList, student)) {
+					fprintf(stderr, "Nie można dodać studenta!\n");
+					break;
+				}
+
+				printf("Dodano studenta:\n"
+					"\t Imię: %s\n"
+					"\t Nazwisko: %s\n"
+					"\t Adres: %s\n"
+					"\t E-Mail: %s\n"
+					"\t Wiek: %d\n"
+					"\t ID: %d\n",
+					name, surname, address, email, age, id
+				);				
+				break;
+			}
+			case '5':
+				return 0;
+			default:
+				printf("Nieznana opcja!\n");
+				break;
+		}
+		(void)_getch();
+	}
+
 	/*
 	FILE* file = fopen("students.csv", "w");
 	if (!file)
@@ -83,48 +173,8 @@ int MainFunc() {
 /*
 int MainFunc() {
 	while (true) {
-		clrscr();
-		printf("/==================================\\\n");
-		printf("|          BAZA STUDENCKA          |\n");
-		printf("\\==================================/\n");
-		printf("\nDostepne opcje:\n"
-			"[1] Dodaj studenta\n"
-			"[2] Usun studenta\n"
-			"[3] Wczytaj studenta\n"
-			"[4] Wyswietl studentow\n"
-			"[5] Wyjdz\n"
-		);
-		char option = _getch();
-		printf("\n");
 		switch (option) {
-			case '1':
-			{
-				printf("Imie: ");
-				char name[20]{ 0 };
-				scanf_s("%s", &name, 20);
-
-				printf("Wiek: ");
-				char ageStr[3]{};
-				scanf_s("%s", &ageStr, 3);
-
-				auto age = (uint8_t) strtoul(ageStr, nullptr, 10);
-				if (age == 0) {
-					printf("Nieprawidlowy wiek!\n");
-					break;
-				}
-
-				printf("ID: ");
-				char idStr[5]{ 0 };
-				scanf_s("%s", &idStr, 5);
-				auto id = (uint16_t) strtoul(idStr, nullptr, 10);
-				if (id == 0) {
-					printf("Nieprawidlowy numer ID!\n");
-					break;
-				}
-
-				AddStudent(name, age, id);
-				break;
-			} case '2':
+			case '2':
 			{
 
 				printf("ID: ");
@@ -171,11 +221,6 @@ int MainFunc() {
 				}
 				break;
 			}
-			case '5':
-				return 0;
-			default:
-				printf("Nieznana opcja!\n");
-				break;
 		}
 		printf("\nNacisnij dowolny przycisk aby powrocic");
 		auto _ = _getch();

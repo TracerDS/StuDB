@@ -8,6 +8,9 @@
 #define MIN_ID_VALUE 1000
 #define MAX_ID_VALUE 9999
 
+#define MIN_AGE_VALUE 12
+#define MAX_AGE_VALUE 120
+
 typedef struct Student Student;
 
 Student* Student_Create(

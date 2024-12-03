@@ -84,7 +84,7 @@ Student* Student_CreateRandom() {
 	student->address = Array_CreateFromString("Belize");
 	student->email = studentEmail;
 
-	student->age = (uint8_t)randomNumberBetween(12, 90);
+	student->age = (uint8_t)randomNumberBetween(MIN_AGE_VALUE, MAX_AGE_VALUE);
 	student->id = (uint8_t)randomNumberBetween(MIN_ID_VALUE, MAX_ID_VALUE);
 
 	return student;

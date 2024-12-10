@@ -7,20 +7,21 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#ifdef _DEBUG
 struct {
 	bool constructors;
 	bool destructors;
 	bool resize;
+	bool push;
+	bool lookup;
 	bool misc;
 } DebugMode;
-#endif
 
-#ifdef _DEBUG
 void Array_SetDebugMode(uint8_t value) {
 	DebugMode.constructors = value & ARRAY_DEBUG_CONSTRUCTORS;
 	DebugMode.destructors = value & ARRAY_DEBUG_DESTRUCTORS;
 	DebugMode.resize = value & ARRAY_DEBUG_RESIZE;
+	DebugMode.push = value & ARRAY_DEBUG_PUSH;
+	DebugMode.lookup = value & ARRAY_DEBUG_LOOKUP;
 	DebugMode.misc = value & ARRAY_DEBUG_MISC;
 }
 uint8_t Array_GetDebugMode() {
@@ -28,10 +29,11 @@ uint8_t Array_GetDebugMode() {
 	if (DebugMode.constructors) value |= ARRAY_DEBUG_CONSTRUCTORS;
 	if (DebugMode.destructors) value |= ARRAY_DEBUG_DESTRUCTORS;
 	if (DebugMode.resize) value |= ARRAY_DEBUG_RESIZE;
+	if (DebugMode.push) value |= ARRAY_DEBUG_PUSH;
+	if (DebugMode.lookup) value |= ARRAY_DEBUG_LOOKUP;
 	if (DebugMode.misc) value |= ARRAY_DEBUG_MISC;
 	return value;
 }
-#endif
 
 struct Array {
 	char* data;
@@ -41,11 +43,10 @@ struct Array {
 
 Array* Array_Create(size_t size) {
 	Array* array = (Array*)calloc(1, sizeof(Array));
+	assert(array && "Cannot allocate array");
 	if (!array) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("Failed to allocate memory for Array");
-#endif
 		return NULL;
 	}
 
@@ -56,19 +57,16 @@ Array* Array_Create(size_t size) {
 }
 
 Array* Array_Copy(const Array* const array) {
+	assert(array && "Array is NULL");
 	if (!array) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("Array is NULL");
-#endif
 		return NULL;
 	}
 	Array* copy = Array_Create(array->length);
 	if (!copy) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("Failed to create copy of Array");
-#endif
 		return NULL;
 	}
 
@@ -78,46 +76,38 @@ Array* Array_Copy(const Array* const array) {
 }
 
 Array* Array_CreateFromString(const char* const string) {
+	assert(string && "String is NULL");
 	if (!string) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("String data is NULL");
-#endif
 		return false;
 	}
 
 	size_t size = strlen(string);
 	Array* arr = Array_Create(size);
 	if (!arr) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("Failed to create Array from string");
-#endif
 		return NULL;
 	}
 
 	if (!Array_EmplaceBackSize(arr, string, size)) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("Cannot emplace back string");
-#endif
 	}
 	return arr;
 }
 
 bool Array_Reserve(Array* array, size_t size) {
+	assert(array && "Array is NULL");
 	if (!array) {
-#ifdef _DEBUG
 		if (DebugMode.resize)
 			LOG_ERR("Array is NULL");
-#endif
 		return false;
 	}
 	if (size == 0) {
-#ifdef _DEBUG
 		if (DebugMode.resize)
 			LOG_ERR("Size is 0");
-#endif
 		return false;
 	}
 
@@ -128,18 +118,15 @@ bool Array_Reserve(Array* array, size_t size) {
 }
 
 bool Array_Resize(Array* array, size_t size) {
+	assert(array && "Array is NULL");
 	if (!array) {
-#ifdef _DEBUG
 		if (DebugMode.resize)
 			LOG_ERR("Array is NULL");
-#endif
 		return false;
 	}
 	if (!array->data) {
-#ifdef _DEBUG
 		if (DebugMode.resize)
 			LOG_ERR("Array data is NULL");
-#endif
 		return false;
 	}
 
@@ -149,10 +136,8 @@ bool Array_Resize(Array* array, size_t size) {
 	size_t newReservedSize = size + 1;
 	void* temp = realloc(array->data, newReservedSize * sizeof(char));
 	if (!temp) {
-#ifdef _DEBUG
 		if (DebugMode.resize)
 			LOG_ERR("Failed to allocate memory for Array");
-#endif
 		return false;
 	}
 
@@ -163,14 +148,14 @@ bool Array_Resize(Array* array, size_t size) {
 
 bool Array_PushBack(Array* array, char value) {
 	if (!array) {
-#ifdef _DEBUG
-		if (DebugMode.resize)
+		if (DebugMode.push)
 			LOG_ERR("Array is NULL");
-#endif
 		return false;
 	}
 
 	if (!Array_Reserve(array, nearestMultipleOf(array->length + 1, 8))) {
+		if (DebugMode.push)
+			LOG_ERR("Cannot reserve space for the element");
 		return false;
 	}
 
@@ -179,81 +164,107 @@ bool Array_PushBack(Array* array, char value) {
 	return true;
 }
 
-bool Array_EmplaceBack(Array* array, const char* const value) {
-	if (!array || !value) {
-#ifdef _DEBUG
-		if (DebugMode.resize)
+bool Array_EmplaceBack(Array* array, const char* const string) {
+	assert(array && "Array is NULL");
+	if (!array) {
+		if (DebugMode.push)
 			LOG_ERR("Array is NULL");
-#endif
+		return false;
+	}
+	assert(string && "String is NULL");
+	if (!string) {
+		if (DebugMode.push)
+			LOG_ERR("String is NULL");
 		return false;
 	}
 
-	size_t valueLength = strlen(value);
+	size_t valueLength = strlen(string);
 	size_t newSize = array->length + valueLength + 1;
 	if (!Array_Reserve(array, nearestMultipleOf(newSize, 8))) {
-#ifdef _DEBUG
-		if (DebugMode.resize)
-			LOG_ERR("Cannot reserve space");
-#endif
+		if (DebugMode.push)
+			LOG_ERR("Cannot reserve space for the string");
 		return false;
 	}
 
-	return Array_EmplaceBackSize(array, value, valueLength);
+	return Array_EmplaceBackSize(array, string, valueLength);
 }
-bool Array_EmplaceBackSize(Array* array, const char* const value, size_t size) {
-	if (!array || !value)
+bool Array_EmplaceBackSize(Array* array, const char* const string, size_t size) {
+	assert(array && "Array is NULL");
+	if (!array)
+		return false;
+
+	assert(array && "String is NULL");
+	if (!string)
 		return false;
 
 	size_t newSize = array->length + size + 1;
 	if (!Array_Reserve(array, nearestMultipleOf(newSize, 8))) {
-#ifdef _DEBUG
-		if (DebugMode.resize)
-			LOG_ERR("Cannot reserve space");
-#endif
+		if (DebugMode.push)
+			LOG_ERR("Cannot reserve space for the string");
 		return false;
 	}
 
-	memcpy(array->data + array->length, value, size);
+	memcpy(array->data + array->length, string, size);
 	array->length += size;
 	return true;
 }
 
 char Array_At(const Array* const array, size_t index) {
-	if (!array || index >= array->length)
+	assert(array && "Array is NULL");
+	if (!array) {
+		if (DebugMode.lookup)
+			LOG_ERR("Array is NULL");
 		return 0;
+	}
+	assert(index < array->length && "Index out of bounds");
+	if (index >= array->length) {
+		if (DebugMode.lookup)
+			LOG_ERR("Index out of bounds");
+		return 0;
+	}
 	return array->data[index];
 }
 char* Array_GetData(const Array* const array) {
-	if (!array)
+	assert(array && "Array is NULL");
+	if (!array) {
+		if (DebugMode.lookup)
+			LOG_ERR("Array is NULL");
 		return NULL;
+	}
 	return array->data;
 }
 
 size_t Array_GetSize(const Array* const array) {
-	if (!array)
+	assert(array && "Array is NULL");
+	if (!array) {
+		if (DebugMode.lookup)
+			LOG_ERR("Array is NULL");
 		return -1;
+	}
 	return array->length;
 }
 
 size_t Array_GetReservedSize(const Array* const array) {
-	if (!array)
+	assert(array && "Array is NULL");
+	if (!array) {
+		if (DebugMode.lookup)
+			LOG_ERR("Array is NULL");
 		return -1;
+	}
 	return array->reservedSize;
 }
 
 void Array_Destroy(Array* array) {
+	assert(array && "Array is NULL");
 	if (!array) {
-#ifdef _DEBUG
-		if(DebugMode.destructors)
+		if (DebugMode.destructors)
 			LOG_ERR("Array is NULL");
-#endif
 		return;
 	}
+	assert(array->data && "Array is already destroyed");
 	if (!array->data) {
-#ifdef _DEBUG
 		if (DebugMode.destructors)
 			LOG_ERR("Array data is NULL");
-#endif
 		return;
 	}
 
@@ -274,10 +285,8 @@ struct Vector {
 Vector* Vector_Create(size_t size) {
 	Vector* array = (Vector*)calloc(1, sizeof(Vector));
 	if (!array) {
-#ifdef _DEBUG
 		if (DebugMode.constructors)
 			LOG_ERR("Failed to allocate memory for Vector");
-#endif
 		return NULL;
 	}
 
@@ -291,10 +300,8 @@ Vector* Vector_Create(size_t size) {
 
 bool Vector_Reserve(Vector* array, size_t size) {
 	if (!array) {
-#ifdef _DEBUG
 		if (DebugMode.resize)
 			LOG_ERR("Vector is NULL");
-#endif
 		return false;
 	}
 
@@ -305,10 +312,9 @@ bool Vector_Reserve(Vector* array, size_t size) {
 }
 bool Vector_Resize(Vector* array, size_t size) {
 	if (!array) {
-#ifdef _DEBUG
+
 		if (DebugMode.resize)
 			LOG_ERR("Vector is NULL");
-#endif
 		return false;
 	}
 
@@ -318,10 +324,9 @@ bool Vector_Resize(Vector* array, size_t size) {
 	size_t newReservedSize = size + 1;
 	Array** temp = realloc(array->data, newReservedSize * sizeof(Array*));
 	if (!temp) {
-#ifdef _DEBUG
+
 		if (DebugMode.resize)
 			LOG_ERR("Failed to allocate memory for Array");
-#endif
 		return false;
 	}
 
@@ -336,34 +341,30 @@ bool Vector_PushBack(Vector* array, const char* const value) {
 }
 bool Vector_PushBackArray(Vector* array, const Array* const value) {
 	if (!array) {
-#ifdef _DEBUG
+
 		if (DebugMode.resize)
 			LOG_ERR("Vector is NULL");
-#endif
 		return false;
 	}
 	if (!value) {
-#ifdef _DEBUG
+
 		if (DebugMode.resize)
 			LOG_ERR("Value is NULL");
-#endif
 		return false;
 	}
 
 	if (!Vector_Reserve(array, nearestMultipleOf(array->length + 1, 8))) {
-#ifdef _DEBUG
+
 		if (DebugMode.resize)
 			LOG_ERR("Cannot reserve the data");
-#endif
 		return false;
 	}
 
 	Array* copy = Array_Copy(value);
 	if (!copy) {
-#ifdef _DEBUG
+
 		if (DebugMode.resize)
 			LOG_ERR("Cannot copy the array");
-#endif
 		return false;
 	}
 
@@ -374,18 +375,16 @@ bool Vector_PushBackArray(Vector* array, const Array* const value) {
 
 const Array* const Vector_At(const Vector* const array, size_t index) {
 	if (!array) {
-#ifdef _DEBUG
+
 		if (DebugMode.misc)
 			LOG_ERR("Vector is NULL");
-#endif
 		return NULL;
 	}
 
 	if (index >= array->length) {
-#ifdef _DEBUG
+
 		if (DebugMode.misc)
 			LOG_ERR("Vector index out of bounds");
-#endif
 		return NULL;
 	}
 
@@ -405,18 +404,16 @@ size_t Vector_GetReservedSize(const Vector* const array) {
 
 void Vector_Destroy(Vector* array) {
 	if (!array) {
-#ifdef _DEBUG
+
 		if (DebugMode.destructors)
 			LOG_ERR("Vector is NULL");
-#endif
 		return;
 	}
 
 	for (size_t i = 0; i < array->length; i++) {
-#ifdef _DEBUG
+
 		if (DebugMode.destructors)
 			LOG("Deleting element %llu in 0x%08" PRIX64 "...", i, (uintptr_t)array);
-#endif
 		Array_Destroy(array->data[i]);
 		array->data[i] = NULL;
 	}

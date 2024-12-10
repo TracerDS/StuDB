@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <array.h>
+#include <assert.h>
 
 #include <studentlist.h>
 #include <utils.h>
@@ -25,6 +26,7 @@ StudentList* StudentList_Create() {
 }
 
 bool StudentList_GenerateRandom(StudentList* const list, size_t size) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return false;
 
@@ -50,6 +52,7 @@ bool StudentList_GenerateRandom(StudentList* const list, size_t size) {
 }
 
 bool StudentList_Reserve(StudentList* const list, size_t size) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return false;
 
@@ -59,6 +62,7 @@ bool StudentList_Reserve(StudentList* const list, size_t size) {
 	return StudentList_Resize(list, size);
 }
 bool StudentList_Resize(StudentList* const list, size_t size) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return false;
 
@@ -77,7 +81,12 @@ bool StudentList_Resize(StudentList* const list, size_t size) {
 }
 
 bool StudentList_AddStudent(StudentList* const list, Student* const value) {
-	if (!list || !value)
+	assert(list && "StudentList is NULL");
+	if (!list)
+		return false;
+
+	assert(value && "Student is NULL");
+	if (!value)
 		return false;
 
 	if (!StudentList_Reserve(list, nearestMultipleOf(list->length + 1, 8))) {
@@ -97,6 +106,7 @@ bool StudentList_AddStudentsFromFile(StudentList* const list, const char* const 
 	return StudentList_AddStudentsFromCSV(list, filepath, false);
 }
 bool StudentList_AddStudentsFromCSV(StudentList* const list, const char* const filepath, bool withHeader) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return false;
 
@@ -138,20 +148,24 @@ bool StudentList_AddStudentsFromCSV(StudentList* const list, const char* const f
 }
 
 Student* StudentList_Get(const StudentList* const list, size_t index) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return NULL;
 
+	assert(index >= list->length && "Index too large");
 	if (index >= list->length)
 		return NULL;
 
 	return list->students[index];
 }
 size_t StudentList_GetSize(const StudentList* const list) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return -1;
 	return list->length;
 }
 size_t StudentList_GetReservedSize(const StudentList* const list) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return -1;
 	return list->reservedSize;
@@ -187,20 +201,25 @@ void quicksort(Student** students, size_t left, size_t right, SortingFunction so
     }
 }
 
-void bubblesort(StudentList* data, SortingFunction func) {
-    if (!data || !func)
+void bubblesort(StudentList* list, SortingFunction func) {
+	assert(list && "StudentList is NULL");
+    if (!list)
+		return;
+
+	assert(func && "SortingFunction is NULL");
+	if (!func)
 		return;
 
     bool swapped;
-    for (size_t i = 0; i < data->length - 1; i++) {
+    for (size_t i = 0; i < list->length - 1; i++) {
         swapped = false;
-        for (size_t j = 0; j < data->length - i - 1; j++) {
-			if (func(data->students[j], data->students[j + 1]) <= 0)
+        for (size_t j = 0; j < list->length - i - 1; j++) {
+			if (func(list->students[j], list->students[j + 1]) <= 0)
 				continue;
 			
-            Student* temp = data->students[j];
-            data->students[j] = data->students[j + 1];
-            data->students[j + 1] = temp;
+            Student* temp = list->students[j];
+			list->students[j] = list->students[j + 1];
+			list->students[j + 1] = temp;
             swapped = true;
         }
         if (!swapped) break;
@@ -208,6 +227,7 @@ void bubblesort(StudentList* data, SortingFunction func) {
 }
 
 void StudentList_Remove(StudentList* list, const Student* const student) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return;
 	
@@ -248,6 +268,7 @@ int StudentList_CompareID(const Student* const a, const Student* const b) {
 }
 
 Student* StudentList_GetByID(const StudentList* const list, uint16_t id) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return NULL;
 
@@ -262,9 +283,9 @@ Student* StudentList_GetByID(const StudentList* const list, uint16_t id) {
 }
 
 bool StudentList_Sort(StudentList* list, SortingType type) {
-	if (!list) {
+	assert(list && "StudentList is NULL");
+	if (!list)
 		return false;
-	}
 
 	if (list->length < 2) {
 		return false;
@@ -288,6 +309,7 @@ bool StudentList_Sort(StudentList* list, SortingType type) {
 }
 
 bool StudentList_IsIDReserved(const StudentList* const list, uint16_t id) {
+	assert(list && "StudentList is NULL");
 	if (!list)
 		return false;
 
@@ -302,6 +324,8 @@ bool StudentList_IsIDReserved(const StudentList* const list, uint16_t id) {
 }
 
 void StudentList_Destroy(StudentList* list) {
+	assert(list && "StudentList is NULL");
+
 	if (!list)
 		return;
 

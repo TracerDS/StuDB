@@ -6,18 +6,22 @@
 
 typedef struct Array Array;
 
-#ifdef _DEBUG
 enum {
 	ARRAY_DEBUG_NOTHING = 0,
 	ARRAY_DEBUG_CONSTRUCTORS = (1 << 0),
 	ARRAY_DEBUG_DESTRUCTORS = (1 << 1),
 	ARRAY_DEBUG_RESIZE = (1 << 2),
-	ARRAY_DEBUG_MISC = (1 << 3),
-	ARRAY_DEBUG_ALL = (ARRAY_DEBUG_MISC << 1) - 1,
+	ARRAY_DEBUG_PUSH = (1 << 3),
+	ARRAY_DEBUG_LOOKUP = (1 << 4),
+	ARRAY_DEBUG_MISC = (1 << 5),
+
+	// Automatic enum value
+	ARRAY_DEBUG_RESERVE,
+	ARRAY_DEBUG_ALL = ((ARRAY_DEBUG_RESERVE - 1) << 1) - 1,
 };
+
 void Array_SetDebugMode(uint8_t value);
 uint8_t Array_GetDebugMode();
-#endif
 
 Array* Array_Create(size_t size);
 Array* Array_Copy(const Array* const array);

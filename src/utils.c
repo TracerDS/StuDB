@@ -78,8 +78,8 @@ size_t nearestMultipleOf(size_t num, size_t multiple) {
 }
 
 char* readFile(const char* const path, size_t* size) {
-	FILE* file;
-	if (fopen_s(file, path, "r") || !file)
+	FILE* file = NULL;
+	if (fopen_s(&file, path, "r") || !file)
 		return NULL;
 
 	fseek(file, 0, SEEK_END);
@@ -104,8 +104,8 @@ char* readFile(const char* const path, size_t* size) {
 }
 
 void appendFile(const char* const path, const char* const data) {
-	FILE* file;
-	if(fopen_s(file, path, "a") || !file);
+	FILE* file = NULL;
+	if(fopen_s(&file, path, "a") || !file);
 		return;
 
 	fwrite(data, sizeof(char), strlen(data), file);

@@ -13,6 +13,8 @@ struct StudentList {
 	size_t length;
 };
 
+typedef bool(*SorterFunc_t)(StudentList* data, SortingFunction func);
+
 StudentList* StudentList_Create() {
 	StudentList* studentList = (StudentList*)calloc(1, sizeof(StudentList));
 	if (!studentList)
@@ -281,6 +283,63 @@ Student* StudentList_GetByID(const StudentList* const list, uint16_t id) {
 	}
 	return NULL;
 }
+void quicksort_helper(Student** students, size_t left, size_t right, SortingFunction sortingFunc) {
+	size_t i = left;
+	size_t j = right;
+	Student* tmp;
+	Student* pivot = students[(i + j) / 2];
+
+	while (i <= j) {
+		while (sortingFunc(students[i], pivot) < 0) {
+			i++;
+		}
+		while (sortingFunc(students[j], pivot) > 0) {
+			j--;
+		}
+		if (i <= j) {
+			tmp = students[i];
+			students[i] = students[j];
+			students[j] = tmp;
+			i++;
+			j--;
+		}
+	}
+
+	if (left < j) {
+		quicksort_helper(students, left, j, sortingFunc);
+	}
+	if (i < right) {
+		quicksort_helper(students, i, right, sortingFunc);
+	}
+}
+bool quicksort(StudentList* data, SortingFunction func) {
+	if (!data || !func)
+		return false;
+
+	quicksort_helper(data->students, 0, data->length - 1, func);
+	return true;
+}
+
+bool bubblesort(StudentList* data, SortingFunction func) {
+	if (!data || !func)
+		return false;
+
+	bool swapped;
+	for (size_t i = 0; i < data->length - 1; i++) {
+		swapped = false;
+		for (size_t j = 0; j < data->length - i - 1; j++) {
+			if (func(data->students[j], data->students[j + 1]) <= 0)
+				continue;
+
+			Student* temp = data->students[j];
+			data->students[j] = data->students[j + 1];
+			data->students[j + 1] = temp;
+			swapped = true;
+		}
+		if (!swapped) break;
+	}
+	return true;
+}
 
 bool StudentList_Sort(StudentList* list, SortingType type) {
 	assert(list && "StudentList is NULL");
@@ -303,9 +362,9 @@ bool StudentList_Sort(StudentList* list, SortingType type) {
 			sortingFunc = StudentList_CompareID;
 			break;
 	}
-
-	bubblesort(list, sortingFunc);
-	return true;
+	SorterFunc_t sorter = quicksort;
+	
+	return sorter(list, sortingFunc);
 }
 
 bool StudentList_IsIDReserved(const StudentList* const list, uint16_t id) {

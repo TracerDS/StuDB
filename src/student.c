@@ -233,7 +233,6 @@ uint16_t Student_GetID(const Student* const student) {
 	return student->id;
 }
 
-
 bool Student_SetName(Student* const student, const Array* const name) {
 	if (!student || !name)
 		return false;

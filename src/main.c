@@ -38,25 +38,28 @@ int main() {
 }
 
 int MainFunc() {
-	//StudentList_GenerateRandom(g_studentList, 100);
-	StudentList_AddStudentsFromCSV(g_studentList, "students.csv", true);
+	if (false) {
+		//StudentList_GenerateRandom(g_studentList, 100);
+		StudentList_AddStudentsFromCSV(g_studentList, "students.csv", true);
 
-	StudentList_Sort(g_studentList, SORTINGTYPE_DEFAULT);
+		StudentList_Sort(g_studentList, SORTINGTYPE_DEFAULT);
 
-	size_t size = StudentList_GetSize(g_studentList);
+		size_t size = StudentList_GetSize(g_studentList);
 
-	for (size_t i = 0; i < size; i++) {
-		Student* student = StudentList_Get(g_studentList, i);
-		const char* name = Student_GetName(student);
-		const char* surname = Student_GetSurname(student);
-		const char* email = Student_GetEmail(student);
-		const char* address = Student_GetAddress(student);
-		uint8_t age = Student_GetAge(student);
-		uint16_t ID = Student_GetID(student);
+		for (size_t i = 0; i < size; i++) {
+			Student* student = StudentList_Get(g_studentList, i);
+			const char* name = Student_GetName(student);
+			const char* surname = Student_GetSurname(student);
+			const char* email = Student_GetEmail(student);
+			const char* address = Student_GetAddress(student);
+			uint8_t age = Student_GetAge(student);
+			uint16_t ID = Student_GetID(student);
 
-		fprintf(stdout, "%s,%s,%s,%s,%d,%d\n", name, surname, email, address, age, ID);
+			fprintf(stdout, "%d\n", ID);
+			//fprintf(stdout, "%s,%s,%s,%s,%d,%d\n", name, surname, email, address, age, ID);
+		}
 	}
-
+	
 	while (true) {
 		clrscr();
 		printf("/==================================\\\n");
@@ -160,6 +163,53 @@ int MainFunc() {
 				}
 				break;
 			}
+			case '3': {
+				printf("Z pliku? [T/N]: ");
+				char fromFile;
+				scanf_s(" %c", &fromFile, 1);
+				fromFile = tolower(fromFile);
+
+				switch (fromFile) {
+					case 't':
+						printf("Podaj ścieżkę do pliku: ");
+						char path[MAX_PATH] = {0};
+						scanf_s(" %s", &path, MAX_PATH);
+						if (!StudentList_AddStudentsFromFile(g_studentList, path)) {
+							fprintf(stderr, "Nie można wczytać studentów z pliku!\n");
+							break;
+						}
+						printf("Wczytano studentów z pliku \"%s\"\n", path);
+						break;
+					case 'n':
+						printf("No\n");
+						break;
+					default:
+						fprintf(stderr, "Nieprawidłowy wybór!\n");
+						break;
+				}
+				break;
+			}
+			case '4':
+				size_t size = StudentList_GetSize(g_studentList);
+				if (size == 0) {
+					printf("Nie ma żadnych studentów\n");
+					break;
+				}
+				for (size_t i = 0; i < size; i++) {
+					Student* student = StudentList_Get(g_studentList, i);
+
+					const char* name = Student_GetName(student);
+					const char* surname = Student_GetSurname(student);
+					const char* email = Student_GetEmail(student);
+					const char* address = Student_GetAddress(student);
+					uint8_t age = Student_GetAge(student);
+					uint16_t ID = Student_GetID(student);
+
+					printf("%d - %s %s, %s - %s (%d)\n",
+						ID, name, surname, address, email, age
+					);
+				}
+				break;
 			case '5':
 				return 0;
 			default:
